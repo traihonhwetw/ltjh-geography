@@ -261,24 +261,26 @@ body {
 
 /* ── Link Grid Buttons ── */
 .btn-yellow {
-  background: var(--dark);
-  color: rgba(255,255,255,.82);
+  background: var(--cream);
+  color: var(--text-main);
   padding: 12px 20px;
-  border: 1px solid rgba(196,168,79,.2);
+  border: 1px solid var(--gold-line);
+  border-left: 3px solid transparent;
   font-size: .82rem;
   font-weight: 400;
-  letter-spacing: .08em;
+  letter-spacing: .06em;
   cursor: pointer;
   text-decoration: none;
   display: inline-block;
   border-radius: 0;
-  transition: border-color .22s, color .22s, background .22s;
+  transition: border-color .22s, border-left-color .22s, color .22s, background .22s;
   box-shadow: none;
 }
 .btn-yellow:hover {
-  border-color: var(--gold);
-  color: var(--gold-light);
-  background: rgba(196,168,79,.06);
+  border-color: var(--gold-line);
+  border-left-color: var(--gold);
+  color: var(--text-main);
+  background: rgba(196,168,79,.07);
   transform: none;
   box-shadow: none;
 }
@@ -287,13 +289,13 @@ body {
 .link-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 6px;
+  margin-bottom: 6px;
 }
 .link-grid .btn-yellow {
   width: 100%;
-  text-align: center;
-  padding: 13px 16px;
+  text-align: left;
+  padding: 13px 18px;
 }
 
 /* ══════════════════════════════
