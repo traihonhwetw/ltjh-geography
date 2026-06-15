@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>地圖批改 | 探索・地理</title>
+<link rel="stylesheet" href="./css/style.css">
+<style>
+.grader-wrap {
+  max-width: 680px;
+  margin: 40px auto;
+  padding: 0 24px 60px;
+}
+.grade-tag {
+  display: inline-block;
+  background: rgba(196,168,79,.1);
+  color: var(--gold);
+  font-size: .72rem;
+  letter-spacing: .3em;
+  padding: 6px 16px;
+  border: 1px solid var(--gold-line);
+  margin-bottom: 28px;
+}
+.upload-zone {
+  border: 2px dashed var(--gold-line);
+  background: var(--cream-2);
+  padding: 60px 24px;
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  transition: border-color .25s, background .25s;
+  margin-bottom: 20px;
+}
+.upload-zone:hover, .upload-zone.drag {
+  border-color: var(--gold);
+  background: rgba(196,168,79,.04);
+}
+.upload-zone input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+.upload-icon { font-size: 3rem; display: block; margin-bottom: 14px; }
+.upload-title { font-size: 1rem; font-weight: 500; letter-spacing: .1em; color: var(--text-main); margin-bottom: 6px; }
+.upload-sub { font-size: .78rem; color: var(--text-muted); letter-spacing: .05em; }
+#previewImg {
+  width: 100%;
+  border: 1px solid var(--gold-line);
+  margin-bottom: 20px;
+  display: none;
+}
+.submit-bar { display: none; text-align: center; margin-bottom: 32px; }
+.submit-main {
+  background: var(--gold);
+  color: var(--dark);
+  border: none;
+  padding: 14px 56px;
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: .85rem;
+  font-weight: 500;
+  letter-spacing: .3em;
+  cursor: pointer;
+  transition: opacity .2s;
+}
+.submit-main:hover { opacity: .85; }
+.submit-main:disabled { opacity: .45; cursor: not-allowed; }
+.reupload-link {
+  display: block;
+  margin-top: 12px;
+  font-size: .73rem;
+  color: var(--text-muted);
+  letter-spacing: .12em;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.loading-box {
+  text-align: center;
+  padding: 52px 0;
+}
+.spinner {
+  width: 36px; height: 36px;
+  border: 3px solid var(--gold-line);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-size: .8rem; color: var(--text-muted); letter-spacing: .18em; }
+.score-hero {
+  text-align: center;
+  padding: 36px 0 28px;
+  border-bottom: 1px solid var(--gold-line);
+  margin-bottom: 28px;
+}
+.score-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 6rem;
+  font-weight: 300;
+  color: var(--gold);
+  line-height: 1;
+}
+.score-denom { font-size: .78rem; color: var(--text-muted); letter-spacing: .22em; margin-top: 6px; }
+.score-row { display: flex; gap: 12px; margin-bottom: 28px; }
+.score-cell {
+  flex: 1;
+  background: var(--cream-2);
+  border: 1px solid var(--gold-line);
+  padding: 22px 12px;
+  text-align: center;
+}
+.score-cell .pts {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2.8rem;
+  font-weight: 300;
+  color: var(--gold);
+  line-height: 1;
+}
+.score-cell .of { font-size: .7rem; color: var(--text-muted); }
+.score-cell .lbl { font-size: .7rem; letter-spacing: .18em; color: var(--text-muted); margin-top: 6px; }
+.comment-section { margin-bottom: 20px; }
+.comment-label {
+  font-size: .67rem;
+  font-weight: 500;
+  letter-spacing: .32em;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.comment-label::after { content: ''; flex: 1; height: 1px; background: var(--gold-line); }
+.comment-text {
+  font-size: .9rem;
+  line-height: 1.9;
+  color: var(--text-main);
+  background: var(--cream-2);
+  border-left: 3px solid var(--gold);
+  padding: 14px 18px;
+}
+.overall-box {
+  background: var(--dark-2);
+  color: rgba(255,255,255,.82);
+  padding: 20px 24px;
+  font-size: .9rem;
+  line-height: 1.9;
+  border-left: 3px solid var(--gold);
+  margin-bottom: 28px;
+}
+.retry-btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 14px;
+  border: 1px solid var(--gold-line);
+  color: var(--text-muted);
+  font-size: .74rem;
+  letter-spacing: .22em;
+  cursor: pointer;
+  background: transparent;
+  font-family: inherit;
+  transition: border-color .2s, color .2s;
+}
+.retry-btn:hover { border-color: var(--gold); color: var(--gold); }
+.error-box {
+  background: #1a0808;
+  border-left: 3px solid #b84444;
+  padding: 16px 18px;
+  color: rgba(255,255,255,.7);
+  font-size: .85rem;
+  margin-bottom: 16px;
+  line-height: 1.7;
+}
+@media (max-width: 480px) {
+  .grader-wrap { padding: 0 16px 40px; margin-top: 24px; }
+  .score-num { font-size: 4.5rem; }
+}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <nav class="top-nav">
+    <a href="./index.html">首頁</a>
+    <a href="./grade1/index.html">一年級</a>
+    <a href="./grade2/index.html">二年級</a>
+    <a href="./grade3/index.html">三年級</a>
+    <a href="./about.html">課程說明</a>
+    <a href="./resources.html">其他資源</a>
+    <a href="./feedback.html">問題與回饋</a>
+  </nav>
+  <div class="header-text">
+    <h1>地圖批改 <span class="en">MAP GRADER</span></h1>
+  </div>
+</header>
+
+<div class="grader-wrap">
+  <div id="gradeTag" class="grade-tag">— 地圖作業批改 —</div>
+
+  <div class="upload-zone" id="uploadZone">
+    <input type="file" accept="image/*" capture="environment" id="fileInput">
+    <span class="upload-icon">🗺️</span>
+    <div class="upload-title">上傳你的地圖作業</div>
+    <div class="upload-sub">點此選擇照片，或直接用相機拍照上傳</div>
+  </div>
+
+  <img id="previewImg" alt="地圖預覽">
+
+  <div class="submit-bar" id="submitBar">
+    <button class="submit-main" id="submitBtn" onclick="submitGrading()">送出批改</button>
+    <span class="reupload-link" onclick="resetAll()">重新選擇圖片</span>
+  </div>
+
+  <div id="loadingBox" style="display:none">
+    <div class="loading-box">
+      <div class="spinner"></div>
+      <div class="loading-text">AI 正在批改你的地圖⋯</div>
+    </div>
+  </div>
+
+  <div id="resultBox"></div>
+</div>
+
+<script>
+// Key 從 URL hash (#k=...) 讀取，首次使用後自動存入 localStorage
+function getApiKey() {
+  let key = localStorage.getItem('geo_grader_key');
+  if (key) return key;
+  const hash = new URLSearchParams(location.hash.slice(1));
+  key = hash.get('k');
+  if (key) {
+    localStorage.setItem('geo_grader_key', key);
+    history.replaceState(null, '', location.pathname + location.search);
+  }
+  return key;
+}
+
+const GRADE_INFO = {
+  '1': { label: '一年級', topic: '台灣地理（縣市行政區、地形、山脈、河流、氣候）或亞洲地理概論' },
+  '2': { label: '二年級', topic: '東亞、東南亞、南亞、西亞地理，或中國地理（省份、地形、河流）' },
+  '3': { label: '三年級', topic: '世界地理（歐洲、美洲、非洲、大洋洲）或全球議題地圖' }
+};
+
+let base64Image = null;
+let mimeType = 'image/jpeg';
+
+const grade = new URLSearchParams(location.search).get('grade') || '1';
+const info = GRADE_INFO[grade] || GRADE_INFO['1'];
+document.getElementById('gradeTag').textContent = `— ${info.label} 地圖作業批改 —`;
+document.title = `${info.label}地圖批改 | 探索・地理`;
+
+document.getElementById('fileInput').addEventListener('change', e => {
+  if (e.target.files[0]) loadFile(e.target.files[0]);
+});
+
+const zone = document.getElementById('uploadZone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+zone.addEventListener('drop', e => {
+  e.preventDefault();
+  zone.classList.remove('drag');
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith('image/')) loadFile(f);
+});
+
+function loadFile(file) {
+  mimeType = file.type || 'image/jpeg';
+  const reader = new FileReader();
+  reader.onload = e => {
+    const src = e.target.result;
+    base64Image = src.split(',')[1];
+    const img = document.getElementById('previewImg');
+    img.src = src;
+    img.style.display = 'block';
+    zone.style.display = 'none';
+    document.getElementById('submitBar').style.display = 'block';
+    document.getElementById('resultBox').innerHTML = '';
+    document.getElementById('loadingBox').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function submitGrading() {
+  if (!base64Image) return;
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    showError('尚未設定 API Key，請用老師提供的 QR Code 重新掃描進入。');
+    return;
+  }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = '批改中⋯';
+  document.getElementById('loadingBox').style.display = 'block';
+  document.getElementById('resultBox').innerHTML = '';
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [
+            { text: buildPrompt() },
+            { inline_data: { mime_type: mimeType, data: base64Image } }
+          ]}],
+          generationConfig: { temperature: 0.3, maxOutputTokens: 1024 }
+        })
+      }
+    );
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const text = data.candidates[0].content.parts[0].text;
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('回應格式錯誤，請重試。');
+    showResult(JSON.parse(match[0]));
+  } catch (err) {
+    showError(err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '送出批改';
+    document.getElementById('loadingBox').style.display = 'none';
+  }
+}
+
+function buildPrompt() {
+  return `你是台灣國中地理老師，正在批改${info.label}學生的空白地圖填寫作業。
+
+地圖學習範圍參考：${info.topic}
+
+【評分標準，滿分100分】
+
+內容 60分
+・正確性 30分：地名、位置、地理資訊是否正確，有無標錯
+・完整性 30分：課程範圍內的重要地點是否都有標記，有無遺漏
+
+美感 40分
+・顏色豐富度 20分：是否用多種顏色區分不同類別，配色是否協調
+・整體美感 20分：字跡清晰、標記整齊、圖面視覺吸引力
+
+請仔細評估學生的努力與表現。評語請用繁體中文，語氣要鼓勵學生，先肯定優點再提出改進空間。
+
+僅回傳以下 JSON，不要有任何其他文字：
+{
+  "content_score": 整數(0-60),
+  "aesthetic_score": 整數(0-40),
+  "total_score": 整數(兩者相加),
+  "content_comment": "內容評語：說明標記了哪些重點，缺少什麼",
+  "aesthetic_comment": "美感評語：顏色使用與視覺整體表現",
+  "overall_comment": "整體鼓勵語（1到2句，積極正向）"
+}`;
+}
+
+function showResult(r) {
+  const medal = r.total_score >= 90 ? '🏆' : r.total_score >= 80 ? '🌟' : r.total_score >= 70 ? '👍' : '✏️';
+  document.getElementById('resultBox').innerHTML = `
+    <div class="score-hero">
+      <div class="score-num">${medal} ${r.total_score}</div>
+      <div class="score-denom">總分 / 100</div>
+    </div>
+    <div class="score-row">
+      <div class="score-cell">
+        <div class="pts">${r.content_score}</div>
+        <div class="of">/ 60</div>
+        <div class="lbl">內容</div>
+      </div>
+      <div class="score-cell">
+        <div class="pts">${r.aesthetic_score}</div>
+        <div class="of">/ 40</div>
+        <div class="lbl">美感</div>
+      </div>
+    </div>
+    <div class="comment-section">
+      <div class="comment-label">內容評語</div>
+      <div class="comment-text">${r.content_comment}</div>
+    </div>
+    <div class="comment-section">
+      <div class="comment-label">美感評語</div>
+      <div class="comment-text">${r.aesthetic_comment}</div>
+    </div>
+    <div class="overall-box">${r.overall_comment}</div>
+    <button class="retry-btn" onclick="resetAll()">重新上傳另一張</button>
+  `;
+}
+
+function showError(msg) {
+  document.getElementById('resultBox').innerHTML = `
+    <div class="error-box">${msg}</div>
+    <button class="retry-btn" onclick="resetAll()">重試</button>
+  `;
+}
+
+function resetAll() {
+  base64Image = null;
+  document.getElementById('previewImg').style.display = 'none';
+  document.getElementById('previewImg').src = '';
+  document.getElementById('uploadZone').style.display = 'block';
+  document.getElementById('submitBar').style.display = 'none';
+  document.getElementById('resultBox').innerHTML = '';
+  document.getElementById('fileInput').value = '';
+}
+</script>
+</body>
+</html>
