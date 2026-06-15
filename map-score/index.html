@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>🗺️ 地圖作業 AI 評分系統</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Noto Sans TC', system-ui, sans-serif; }
+
+    .upload-zone {
+      border: 2.5px dashed #818cf8;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: #4f46e5;
+      background: #eef2ff;
+    }
+
+    /* Circular score ring using conic-gradient */
+    .score-ring {
+      position: relative;
+      width: 160px; height: 160px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: conic-gradient(#6366f1 0deg, #e0e7ff 0deg);
+      transition: background 1.2s ease;
+    }
+    .score-ring::before {
+      content: '';
+      position: absolute;
+      width: 126px; height: 126px;
+      border-radius: 50%;
+      background: white;
+    }
+    .score-ring .inner {
+      position: relative; z-index: 1;
+      text-align: center;
+    }
+    .score-ring .num {
+      display: block;
+      font-size: 2.6rem;
+      font-weight: 900;
+      line-height: 1;
+      color: #4338ca;
+    }
+    .score-ring .label {
+      display: block;
+      font-size: 0.7rem;
+      color: #6b7280;
+      margin-top: 2px;
+    }
+
+    .bar-track { height: 14px; border-radius: 7px; background: #e0e7ff; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 7px; width: 0; transition: width 1.2s cubic-bezier(.34,1.56,.64,1); }
+
+    .fade-in { animation: fadeIn .45s ease both; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+
+    .spin { animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    .bounce-in { animation: bounceIn .6s cubic-bezier(.34,1.56,.64,1) both; }
+    @keyframes bounceIn { from { transform:scale(.7); opacity:0; } to { transform:scale(1); opacity:1; } }
+
+    #loading-section, #results-section, #teacher-panel { display: none; }
+    .pill-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 10px; border-radius: 999px; font-size: .75rem; font-weight: 500;
+    }
+    .hidden-input { position: absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
+  </style>
+</head>
+
+<body class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-sky-50">
+
+<!-- ===== TOP NAV ===== -->
+<nav class="sticky top-0 z-50 bg-white/80 backdrop-blur border-b border-indigo-100 px-4 py-3 flex items-center justify-between">
+  <div class="flex items-center gap-2">
+    <span class="text-2xl">🗺️</span>
+    <span class="font-bold text-indigo-700 text-sm leading-tight">地圖作業<br><span class="text-xs font-normal text-gray-500">AI 即時評分</span></span>
+  </div>
+  <button id="btn-teacher-toggle" onclick="toggleTeacher()"
+    class="flex items-center gap-1 text-xs text-gray-400 hover:text-indigo-600 border border-gray-200 hover:border-indigo-300 rounded-full px-3 py-1.5 transition">
+    ⚙️ 老師設定
+  </button>
+</nav>
+
+<!-- ===== TEACHER PANEL ===== -->
+<div id="teacher-panel" class="max-w-xl mx-auto px-4 py-6 fade-in">
+  <div class="bg-white rounded-2xl shadow-sm border border-indigo-100 overflow-hidden">
+    <div class="bg-indigo-600 px-5 py-4">
+      <h2 class="text-white font-bold text-lg">⚙️ 老師設定</h2>
+      <p class="text-indigo-200 text-xs mt-1">設定完成後產生 QR Code，讓學生掃描直接開始作業</p>
+    </div>
+    <div class="p-5 space-y-5">
+
+      <!-- API Key -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1.5">🔑 Gemini API Key</label>
+        <div class="flex gap-2">
+          <input id="input-apikey" type="password" placeholder="AIza..." autocomplete="off"
+            class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+          <button onclick="saveApiKey()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition">儲存</button>
+        </div>
+        <p class="text-xs text-gray-400 mt-1">Key 只存在本機，不會上傳至任何伺服器。
+          <a href="https://aistudio.google.com/apikey" target="_blank" class="text-indigo-500 underline">取得免費 API Key →</a>
+        </p>
+        <div id="apikey-status" class="text-xs mt-1"></div>
+      </div>
+
+      <!-- Subject criteria -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1.5">📋 這次作業的主題</label>
+        <input id="input-topic" type="text" placeholder="例如：東亞地理——日本與朝鮮半島"
+          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1.5">📍 地理內容評分重點（70分）</label>
+        <textarea id="input-geo-criteria" rows="4"
+          placeholder="例如：板塊邊界、黑潮與親潮（洋流方向正確）、冬夏季風、38度線、日本四大島、主要城市（東京、京都、大阪、首爾、平壤）"
+          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"></textarea>
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1.5">🎨 視覺美感評分重點（30分）</label>
+        <textarea id="input-art-criteria" rows="3"
+          placeholder="例如：用不同顏色區分不同地理要素（洋流/季風/城市）、字體工整、排版整潔不擁擠、整體美觀"
+          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"></textarea>
+      </div>
+
+      <button onclick="saveCriteria()"
+        class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-xl transition text-sm">
+        ✅ 儲存評分標準
+      </button>
+      <div id="criteria-status" class="text-xs text-center"></div>
+
+      <!-- QR Code Generator -->
+      <hr class="border-gray-100">
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1.5">📱 產生學生 QR Code</label>
+        <p class="text-xs text-gray-500 mb-2">輸入此網頁的公開網址（部署後的 GitHub Pages / Netlify 網址），產生給學生掃描的 QR Code。</p>
+        <div class="flex gap-2">
+          <input id="input-public-url" type="url" placeholder="https://your-site.github.io/map-score/"
+            class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+          <button onclick="generateQR()" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition">產生</button>
+        </div>
+        <div id="qr-container" class="mt-4 hidden flex-col items-center gap-2">
+          <div id="qrcode" class="p-3 bg-white border border-gray-200 rounded-xl inline-block"></div>
+          <p class="text-xs text-gray-400">學生掃描此 QR Code 即可使用評分系統</p>
+          <button onclick="downloadQR()" class="text-xs text-indigo-600 underline">下載 QR Code 圖片</button>
+        </div>
+      </div>
+
+      <!-- Submission Log -->
+      <hr class="border-gray-100">
+      <div>
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-sm font-semibold text-gray-700">📊 本機評分記錄</span>
+          <div class="flex gap-3">
+            <button onclick="exportCSV()" class="text-xs text-emerald-600 hover:text-emerald-800 font-semibold">📥 匯出 CSV</button>
+            <button onclick="clearLog()" class="text-xs text-red-400 hover:text-red-600">清除</button>
+          </div>
+        </div>
+        <div id="log-container" class="space-y-2 max-h-64 overflow-y-auto pr-1">
+          <p class="text-xs text-gray-400 text-center py-4">尚無記錄</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="mt-4 text-center">
+    <button onclick="toggleTeacher()" class="text-sm text-indigo-600 underline">← 回到學生上傳頁</button>
+  </div>
+</div>
+
+<!-- ===== STUDENT UPLOAD ===== -->
+<div id="student-section" class="max-w-lg mx-auto px-4 py-6">
+
+  <!-- Hero -->
+  <div class="text-center mb-6">
+    <div class="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-2xl mb-3 text-4xl">🗺️</div>
+    <h1 class="text-xl font-bold text-gray-800">地圖作業 AI 評分</h1>
+    <p id="topic-display" class="text-sm text-gray-500 mt-1">請上傳你的手繪地圖，AI 馬上幫你評分！</p>
+  </div>
+
+  <!-- No API key warning -->
+  <div id="no-key-warning" class="hidden mb-4 bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800 flex gap-2">
+    <span>⚠️</span>
+    <span>老師尚未設定評分系統，請通知老師先完成 API Key 設定。</span>
+  </div>
+
+  <!-- Card -->
+  <div class="bg-white rounded-2xl shadow-sm border border-indigo-100 overflow-hidden">
+
+    <!-- Student info -->
+    <div class="p-5 border-b border-gray-50">
+      <h2 class="text-sm font-semibold text-gray-600 mb-3">👤 基本資料</h2>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs text-gray-500 mb-1">座號</label>
+          <input id="input-seat" type="number" min="1" max="60" placeholder="01"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-base text-center font-bold focus:outline-none focus:ring-2 focus:ring-indigo-400">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-500 mb-1">姓名</label>
+          <input id="input-name" type="text" placeholder="王小明"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-indigo-400">
+        </div>
+      </div>
+    </div>
+
+    <!-- Upload area -->
+    <div class="p-5 border-b border-gray-50">
+      <h2 class="text-sm font-semibold text-gray-600 mb-3">📷 上傳地圖</h2>
+
+      <!-- Hidden inputs -->
+      <input type="file" id="input-camera" accept="image/*" capture="environment" class="hidden-input" onchange="handleFileSelect(event)">
+      <input type="file" id="input-gallery" accept="image/*" class="hidden-input" onchange="handleFileSelect(event)">
+
+      <!-- Upload zone -->
+      <div id="upload-zone" class="upload-zone rounded-xl p-6 text-center"
+        onclick="document.getElementById('input-gallery').click()"
+        ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+        <div id="upload-placeholder">
+          <div class="text-4xl mb-2">📤</div>
+          <p class="text-gray-600 text-sm font-medium">點擊選取圖片</p>
+          <p class="text-gray-400 text-xs mt-1">或拖曳圖片到這裡</p>
+        </div>
+        <img id="preview-img" class="hidden max-h-64 mx-auto rounded-lg object-contain" alt="預覽">
+      </div>
+
+      <!-- Mobile camera / gallery buttons -->
+      <div class="grid grid-cols-2 gap-3 mt-3">
+        <button onclick="document.getElementById('input-camera').click()"
+          class="flex items-center justify-center gap-2 border-2 border-indigo-200 text-indigo-700 hover:bg-indigo-50 font-medium py-3 rounded-xl transition text-sm">
+          📷 拍照
+        </button>
+        <button onclick="document.getElementById('input-gallery').click()"
+          class="flex items-center justify-center gap-2 border-2 border-indigo-200 text-indigo-700 hover:bg-indigo-50 font-medium py-3 rounded-xl transition text-sm">
+          🖼️ 從相簿
+        </button>
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="p-5">
+      <div id="submit-error" class="hidden mb-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 flex items-center gap-2">
+        <span>⚠️</span><span id="submit-error-msg"></span>
+      </div>
+      <button id="btn-submit" onclick="submitForScoring()"
+        class="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold py-4 rounded-xl transition text-base shadow-md shadow-indigo-200">
+        🚀 送出讓 AI 老師評分
+      </button>
+      <p class="text-center text-xs text-gray-400 mt-2">評分約需 5–15 秒，請耐心等候</p>
+    </div>
+  </div>
+
+  <!-- Sample image button -->
+  <div class="text-center mt-3">
+    <button onclick="loadSampleImage()" class="text-xs text-indigo-500 hover:text-indigo-700 underline">
+      載入範例地圖測試
+    </button>
+  </div>
+</div>
+
+<!-- ===== LOADING ===== -->
+<div id="loading-section" class="max-w-lg mx-auto px-4 py-10">
+  <div class="bg-white rounded-2xl shadow-sm border border-indigo-100 p-8 text-center">
+    <div class="inline-block w-14 h-14 border-4 border-indigo-100 border-t-indigo-600 rounded-full spin mb-5"></div>
+    <h2 class="text-lg font-bold text-gray-800 mb-2">AI 老師正在批改中…</h2>
+    <div id="loading-msg" class="text-sm text-gray-500 mb-1">正在分析地理內容…</div>
+    <div class="mt-4 h-2 bg-gray-100 rounded-full overflow-hidden">
+      <div id="loading-bar" class="h-full bg-indigo-500 rounded-full transition-all duration-1000" style="width:10%"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== RESULTS ===== -->
+<div id="results-section" class="max-w-lg mx-auto px-4 py-6 space-y-4">
+
+  <!-- Header -->
+  <div class="text-center fade-in">
+    <div id="result-emoji" class="text-5xl mb-2">🏆</div>
+    <h2 class="text-lg font-bold text-gray-800" id="result-title">評分結果</h2>
+    <p class="text-sm text-gray-500" id="result-subtitle"></p>
+  </div>
+
+  <!-- Score ring + breakdown -->
+  <div class="bg-white rounded-2xl shadow-sm border border-indigo-100 p-5 fade-in" style="animation-delay:.1s">
+    <div class="flex items-center justify-center gap-6 mb-5">
+      <div class="score-ring bounce-in" id="score-ring" style="animation-delay:.3s">
+        <div class="inner">
+          <span class="num" id="total-score-num">--</span>
+          <span class="label">/ 100 分</span>
+        </div>
+      </div>
+      <div class="flex-1 space-y-4">
+        <!-- Geography -->
+        <div>
+          <div class="flex justify-between text-xs text-gray-600 mb-1">
+            <span>📍 地理內容</span>
+            <span><span id="geo-score-num">--</span> / 70</span>
+          </div>
+          <div class="bar-track">
+            <div id="geo-bar" class="bar-fill bg-indigo-500"></div>
+          </div>
+        </div>
+        <!-- Aesthetics -->
+        <div>
+          <div class="flex justify-between text-xs text-gray-600 mb-1">
+            <span>🎨 視覺美感</span>
+            <span><span id="art-score-num">--</span> / 30</span>
+          </div>
+          <div class="bar-track">
+            <div id="art-bar" class="bar-fill bg-violet-400"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Geography Details -->
+  <div class="bg-white rounded-2xl shadow-sm border border-indigo-100 p-5 fade-in" style="animation-delay:.2s">
+    <h3 class="font-bold text-gray-700 text-sm mb-3 flex items-center gap-2">
+      <span class="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-sm">📍</span>
+      地理內容分析
+    </h3>
+    <div id="geo-strengths-container" class="mb-3"></div>
+    <div id="geo-weaknesses-container"></div>
+  </div>
+
+  <!-- Aesthetics Details -->
+  <div class="bg-white rounded-2xl shadow-sm border border-indigo-100 p-5 fade-in" style="animation-delay:.3s">
+    <h3 class="font-bold text-gray-700 text-sm mb-3 flex items-center gap-2">
+      <span class="w-7 h-7 rounded-full bg-violet-100 flex items-center justify-center text-sm">🎨</span>
+      視覺美感分析
+    </h3>
+    <div id="art-strengths-container" class="mb-3"></div>
+    <div id="art-weaknesses-container"></div>
+  </div>
+
+  <!-- Comment + TTS -->
+  <div class="bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl shadow-sm p-5 text-white fade-in" style="animation-delay:.4s">
+    <h3 class="font-bold text-sm mb-2 flex items-center gap-2">💬 AI 老師給你的話</h3>
+    <p id="student-comment" class="text-sm leading-relaxed text-indigo-100"></p>
+    <button onclick="speakComment()" id="btn-tts"
+      class="mt-3 flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white text-xs font-medium px-3 py-2 rounded-lg transition">
+      🔊 朗讀評語
+    </button>
+  </div>
+
+  <!-- Uploaded image -->
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 fade-in" style="animation-delay:.5s">
+    <h3 class="font-bold text-gray-700 text-sm mb-3">📸 你的作品</h3>
+    <img id="result-img" class="w-full rounded-xl object-contain max-h-72" alt="作品">
+  </div>
+
+  <!-- Redo button -->
+  <div class="fade-in" style="animation-delay:.6s">
+    <button onclick="resetForm()"
+      class="w-full border-2 border-indigo-200 text-indigo-700 hover:bg-indigo-50 font-semibold py-3 rounded-xl transition text-sm">
+      ↩️ 重新上傳批改
+    </button>
+  </div>
+</div>
+
+<!-- ===== FOOTER ===== -->
+<footer class="text-center text-xs text-gray-300 py-6 mt-4">
+  Powered by Gemini AI · 圖片僅用於當次評分，不會被儲存
+</footer>
+
+<script>
+// ============================================================
+//  STORAGE HELPERS
+// ============================================================
+const LS = {
+  get: k => localStorage.getItem(k) || '',
+  set: (k, v) => localStorage.setItem(k, v),
+  getJson: (k, def) => { try { return JSON.parse(localStorage.getItem(k)) || def; } catch { return def; } },
+  setJson: (k, v) => localStorage.setItem(k, JSON.stringify(v))
+};
+
+// ============================================================
+//  API KEY
+// ============================================================
+function getApiKey() {
+  // 1. URL hash: #k=APIKEY  (老師產生的 QR Code 連結)
+  const hash = window.location.hash.substring(1);
+  const params = new URLSearchParams(hash);
+  if (params.get('k')) {
+    LS.set('gai_key', params.get('k'));
+    return params.get('k');
+  }
+  // 2. localStorage (老師設定頁輸入過)
+  return LS.get('gai_key');
+}
+
+function saveApiKey() {
+  const val = document.getElementById('input-apikey').value.trim();
+  if (!val) { showStatus('apikey-status', '請輸入 API Key', 'red'); return; }
+  LS.set('gai_key', val);
+  showStatus('apikey-status', '✅ 已儲存', 'green');
+  document.getElementById('no-key-warning').classList.add('hidden');
+}
+
+function checkApiKeyOnLoad() {
+  const key = getApiKey();
+  if (!key) {
+    document.getElementById('no-key-warning').classList.remove('hidden');
+  }
+  const saved = LS.get('gai_key');
+  if (saved) {
+    document.getElementById('input-apikey').value = saved;
+  }
+}
+
+// ============================================================
+//  CRITERIA
+// ============================================================
+const DEFAULT_GEO  = '板塊邊界（正確畫出）、黑潮與親潮（洋流名稱和方向）、冬季風與夏季風（箭頭方向）、38度線、日本四大島（北海道、本州、四國、九州）、主要城市（東京、京都、大阪）、朝鮮半島城市（首爾、平壤）';
+const DEFAULT_ART  = '使用不同顏色區分地理要素（洋流/季風/板塊/城市）、色彩豐富且有功能性、字體工整清楚、排版整潔不擁擠、整體視覺美觀易讀';
+const DEFAULT_TOPIC = '東亞地理──日本與朝鮮半島';
+
+function saveCriteria() {
+  const topic = document.getElementById('input-topic').value.trim() || DEFAULT_TOPIC;
+  const geo   = document.getElementById('input-geo-criteria').value.trim() || DEFAULT_GEO;
+  const art   = document.getElementById('input-art-criteria').value.trim() || DEFAULT_ART;
+  LS.setJson('criteria', { topic, geo, art });
+  showStatus('criteria-status', '✅ 評分標準已儲存', 'green');
+  updateTopicDisplay();
+}
+
+function getCriteria() {
+  return LS.getJson('criteria', { topic: DEFAULT_TOPIC, geo: DEFAULT_GEO, art: DEFAULT_ART });
+}
+
+function updateTopicDisplay() {
+  const { topic } = getCriteria();
+  document.getElementById('topic-display').textContent = `主題：${topic}`;
+}
+
+function loadCriteriaToForm() {
+  const c = getCriteria();
+  document.getElementById('input-topic').value        = c.topic;
+  document.getElementById('input-geo-criteria').value = c.geo;
+  document.getElementById('input-art-criteria').value = c.art;
+}
+
+// ============================================================
+//  UI TOGGLE
+// ============================================================
+let teacherOpen = false;
+function toggleTeacher() {
+  teacherOpen = !teacherOpen;
+  document.getElementById('teacher-panel').style.display  = teacherOpen ? 'block' : 'none';
+  document.getElementById('student-section').style.display = teacherOpen ? 'none' : 'block';
+  document.getElementById('results-section').style.display = 'none';
+  document.getElementById('loading-section').style.display = 'none';
+  if (teacherOpen) { loadCriteriaToForm(); renderLog(); }
+}
+
+function showStatus(id, msg, color) {
+  const el = document.getElementById(id);
+  el.className = `text-xs mt-1 text-${color}-600`;
+  el.textContent = msg;
+  setTimeout(() => el.textContent = '', 3000);
+}
+
+// ============================================================
+//  FILE HANDLING
+// ============================================================
+let selectedFile = null;
+let selectedB64  = null;
+let selectedMime = null;
+
+function handleFileSelect(event) {
+  const file = event.target.files[0];
+  if (file) processFile(file);
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.add('drag-over');
+}
+function handleDragLeave(e) {
+  document.getElementById('upload-zone').classList.remove('drag-over');
+}
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) processFile(file);
+}
+
+function processFile(file) {
+  selectedFile = file;
+  selectedMime = file.type || 'image/jpeg';
+  const reader = new FileReader();
+  reader.onload = e => {
+    const result = e.target.result;
+    // Extract base64 part
+    selectedB64 = result.split(',')[1];
+    // Show preview
+    const img = document.getElementById('preview-img');
+    img.src = result;
+    img.classList.remove('hidden');
+    document.getElementById('upload-placeholder').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+// Load sample image (img-001.jpg next to index.html)
+function loadSampleImage() {
+  fetch('assets/img-001.jpg')
+    .then(r => r.blob())
+    .then(blob => {
+      const file = new File([blob], 'sample.jpg', { type: 'image/jpeg' });
+      processFile(file);
+      document.getElementById('input-seat').value = '99';
+      document.getElementById('input-name').value  = '範例學生';
+    })
+    .catch(() => alert('找不到範例圖片，請自行上傳圖片測試。'));
+}
+
+// ============================================================
+//  SCORING
+// ============================================================
+function showError(msg) {
+  const box = document.getElementById('submit-error');
+  document.getElementById('submit-error-msg').textContent = msg;
+  box.classList.remove('hidden');
+  setTimeout(() => box.classList.add('hidden'), 8000);
+}
+
+async function submitForScoring() {
+  const seat = document.getElementById('input-seat').value.trim();
+  const name = document.getElementById('input-name').value.trim();
+
+  if (!seat || !name) { showError('請先填寫座號和姓名 😊'); return; }
+  if (!selectedB64)   { showError('請先上傳地圖照片 📸'); return; }
+
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    showError('系統尚未設定 API Key，請通知老師先完成設定。');
+    return;
+  }
+
+  // Show loading
+  document.getElementById('student-section').style.display = 'none';
+  document.getElementById('loading-section').style.display = 'block';
+  animateLoading();
+
+  try {
+    const result = await callGemini(apiKey, selectedB64, selectedMime);
+    saveToLog(seat, name, result);
+    showResults(seat, name, result);
+  } catch (err) {
+    document.getElementById('student-section').style.display = 'block';
+    document.getElementById('loading-section').style.display = 'none';
+    showError('評分失敗：' + err.message);
+    console.error(err);
+  }
+}
+
+const LOADING_MSGS = [
+  '正在識別地理要素…',
+  '分析洋流與季風標示…',
+  '評估顏色使用與美感…',
+  '計算得分中…',
+  '撰寫個人化評語…'
+];
+
+function animateLoading() {
+  let i = 0;
+  const bar = document.getElementById('loading-bar');
+  const msg = document.getElementById('loading-msg');
+  const id = setInterval(() => {
+    if (i >= LOADING_MSGS.length) { clearInterval(id); return; }
+    msg.textContent = LOADING_MSGS[i];
+    bar.style.width = `${15 + (i / LOADING_MSGS.length) * 75}%`;
+    i++;
+  }, 2000);
+}
+
+async function callGemini(apiKey, imageB64, mimeType) {
+  const { topic, geo, art } = getCriteria();
+
+  const prompt = `你是一位認真負責、鼓勵學生的地理老師。請評分這張學生手繪地圖作業。
+
+主題：${topic}
+滿分：100 分
+
+【評分標準】
+1. 地理內容準確度（70分）：
+   ${geo}
+
+2. 視覺美感與顏色豐富度（30分）：
+   ${art}
+
+請嚴格但公平地評分，並給出具體的優缺點。student_comment 請用溫暖鼓勵的語氣，以「你」稱呼學生，2-3句即可。
+請務必回傳合法的 JSON。`;
+
+  const schema = {
+    type: 'OBJECT',
+    properties: {
+      total_score:           { type: 'INTEGER', description: '總分 0-100' },
+      geography_score:       { type: 'INTEGER', description: '地理內容得分 0-70' },
+      aesthetics_score:      { type: 'INTEGER', description: '視覺美感得分 0-30' },
+      geography_strengths:   { type: 'ARRAY', items: { type: 'STRING' }, description: '地理內容優點（2-4點）' },
+      geography_weaknesses:  { type: 'ARRAY', items: { type: 'STRING' }, description: '地理內容可改進項目（0-3點，若無可為空陣列）' },
+      aesthetics_strengths:  { type: 'ARRAY', items: { type: 'STRING' }, description: '視覺美感優點（1-3點）' },
+      aesthetics_weaknesses: { type: 'ARRAY', items: { type: 'STRING' }, description: '視覺美感可改進項目（0-2點）' },
+      student_comment:       { type: 'STRING', description: '給學生的溫暖評語（2-3句）' }
+    },
+    required: ['total_score', 'geography_score', 'aesthetics_score',
+               'geography_strengths', 'aesthetics_strengths', 'student_comment']
+  };
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { text: prompt },
+            { inlineData: { mimeType, data: imageB64 } }
+          ]
+        }],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          responseSchema: schema,
+          temperature: 0.3
+        }
+      })
+    }
+  );
+
+  if (!res.ok) {
+    const errBody = await res.json().catch(() => ({}));
+    const msg = errBody.error?.message || `HTTP ${res.status}`;
+    if (res.status === 400) throw new Error('請求格式錯誤：' + msg);
+    if (res.status === 403) throw new Error('API Key 無效或沒有權限，請重新確認。');
+    if (res.status === 429) throw new Error('請求過於頻繁，請稍候 30 秒再試。');
+    throw new Error(msg);
+  }
+
+  const data = await res.json();
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error('AI 回應格式異常，請再試一次。');
+
+  return JSON.parse(text);
+}
+
+// ============================================================
+//  DISPLAY RESULTS
+// ============================================================
+function showResults(seat, name, r) {
+  document.getElementById('loading-section').style.display = 'none';
+  document.getElementById('results-section').style.display = 'block';
+
+  // Title
+  document.getElementById('result-subtitle').textContent = `座號 ${seat}｜${name}`;
+
+  // Emoji by score
+  const emoji = r.total_score >= 90 ? '🏆' : r.total_score >= 75 ? '🌟' : r.total_score >= 60 ? '👍' : '📝';
+  document.getElementById('result-emoji').textContent = emoji;
+  document.getElementById('result-title').textContent =
+    r.total_score >= 90 ? '太厲害了！' :
+    r.total_score >= 75 ? '表現優良！' :
+    r.total_score >= 60 ? '繼續加油！' : '還有進步空間';
+
+  // Score numbers
+  document.getElementById('total-score-num').textContent = r.total_score;
+  document.getElementById('geo-score-num').textContent   = r.geography_score;
+  document.getElementById('art-score-num').textContent   = r.aesthetics_score;
+
+  // Score ring color by score
+  const ring = document.getElementById('score-ring');
+  const deg = Math.round(r.total_score / 100 * 360);
+  const color = r.total_score >= 75 ? '#6366f1' : r.total_score >= 60 ? '#f59e0b' : '#ef4444';
+  const trackColor = r.total_score >= 75 ? '#e0e7ff' : r.total_score >= 60 ? '#fef3c7' : '#fee2e2';
+  setTimeout(() => {
+    ring.style.background = `conic-gradient(${color} ${deg}deg, ${trackColor} ${deg}deg)`;
+  }, 300);
+
+  // Progress bars
+  setTimeout(() => {
+    document.getElementById('geo-bar').style.width = `${(r.geography_score / 70) * 100}%`;
+    document.getElementById('art-bar').style.width = `${(r.aesthetics_score / 30) * 100}%`;
+  }, 400);
+
+  // Details
+  renderItems('geo-strengths-container',   r.geography_strengths   || [], 'green', '✅');
+  renderItems('geo-weaknesses-container',  r.geography_weaknesses  || [], 'amber', '💡');
+  renderItems('art-strengths-container',   r.aesthetics_strengths  || [], 'violet','✅');
+  renderItems('art-weaknesses-container',  r.aesthetics_weaknesses || [], 'amber', '💡');
+
+  // Comment
+  document.getElementById('student-comment').textContent = r.student_comment;
+
+  // Image
+  const img = document.getElementById('result-img');
+  img.src = document.getElementById('preview-img').src;
+
+  // TTS cache
+  window._lastComment = r.student_comment;
+
+  // Scroll
+  document.getElementById('results-section').scrollIntoView({ behavior: 'smooth' });
+}
+
+function renderItems(containerId, items, color, icon) {
+  const el = document.getElementById(containerId);
+  if (!items || items.length === 0) { el.innerHTML = ''; return; }
+  el.innerHTML = items.map(t => `
+    <div class="flex gap-2 items-start text-sm text-gray-700 mb-1.5">
+      <span class="text-${color}-500 mt-0.5 flex-shrink-0">${icon}</span>
+      <span>${t}</span>
+    </div>`).join('');
+}
+
+// ============================================================
+//  TTS
+// ============================================================
+function speakComment() {
+  const text = window._lastComment;
+  if (!text) return;
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = 'zh-TW';
+    utter.rate = 0.9;
+    // Try to find a Chinese voice
+    const voices = window.speechSynthesis.getVoices();
+    const zhVoice = voices.find(v => v.lang.startsWith('zh'));
+    if (zhVoice) utter.voice = zhVoice;
+    window.speechSynthesis.speak(utter);
+    document.getElementById('btn-tts').textContent = '🔊 播放中…';
+    utter.onend = () => { document.getElementById('btn-tts').textContent = '🔊 朗讀評語'; };
+  } else {
+    alert('您的瀏覽器不支援語音朗讀功能。');
+  }
+}
+
+// ============================================================
+//  RESET
+// ============================================================
+function resetForm() {
+  selectedFile = null; selectedB64 = null; selectedMime = null;
+  document.getElementById('preview-img').classList.add('hidden');
+  document.getElementById('preview-img').src = '';
+  document.getElementById('upload-placeholder').style.display = 'block';
+  document.getElementById('input-seat').value = '';
+  document.getElementById('input-name').value  = '';
+  document.getElementById('input-camera').value  = '';
+  document.getElementById('input-gallery').value = '';
+  document.getElementById('results-section').style.display = 'none';
+  document.getElementById('student-section').style.display = 'block';
+  document.getElementById('student-section').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ============================================================
+//  LOG
+// ============================================================
+function saveToLog(seat, name, result) {
+  const log = LS.getJson('score_log', []);
+  log.unshift({
+    ts: new Date().toLocaleString('zh-TW'),
+    seat, name,
+    total: result.total_score,
+    geo: result.geography_score,
+    art: result.aesthetics_score
+  });
+  LS.setJson('score_log', log.slice(0, 100));
+}
+
+function renderLog() {
+  const log = LS.getJson('score_log', []);
+  const el = document.getElementById('log-container');
+  if (log.length === 0) { el.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">尚無記錄</p>'; return; }
+
+  const avg = Math.round(log.reduce((s, x) => s + x.total, 0) / log.length);
+  el.innerHTML = `
+    <div class="bg-indigo-50 rounded-lg px-3 py-2 flex justify-between text-xs text-indigo-700 mb-2 font-medium">
+      <span>共 ${log.length} 筆</span><span>班級平均：${avg} 分</span>
+    </div>` +
+    log.map(e => `
+    <div class="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 text-xs">
+      <span class="text-gray-500">${e.ts}</span>
+      <span class="font-medium text-gray-700">${e.seat} ${e.name}</span>
+      <span class="font-bold ${e.total >= 75 ? 'text-indigo-600' : e.total >= 60 ? 'text-amber-600' : 'text-red-500'}">${e.total} 分</span>
+    </div>`).join('');
+}
+
+function clearLog() {
+  if (confirm('確定清除所有評分記錄？')) {
+    LS.setJson('score_log', []);
+    renderLog();
+  }
+}
+
+function exportCSV() {
+  const log = LS.getJson('score_log', []);
+  if (log.length === 0) { alert('目前沒有評分記錄可匯出。'); return; }
+  const header = '時間,座號,姓名,總分,地理內容(70),視覺美感(30)';
+  const rows = log.map(e =>
+    `"${e.ts}","${e.seat}","${e.name}",${e.total},${e.geo},${e.art}`
+  );
+  const bom = '﻿';
+  const csv = bom + [header, ...rows].join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `地圖作業成績_${new Date().toLocaleDateString('zh-TW').replace(/\//g,'-')}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ============================================================
+//  QR CODE
+// ============================================================
+function generateQR() {
+  const url = document.getElementById('input-public-url').value.trim();
+  if (!url) { alert('請輸入公開網址'); return; }
+  const key = getApiKey();
+  const finalUrl = key ? `${url}#k=${encodeURIComponent(key)}` : url;
+
+  const container = document.getElementById('qrcode');
+  container.innerHTML = '';
+  new QRCode(container, {
+    text: finalUrl,
+    width: 200, height: 200,
+    colorDark: '#4338ca', colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+  document.getElementById('qr-container').classList.remove('hidden');
+  document.getElementById('qr-container').classList.add('flex');
+}
+
+function downloadQR() {
+  const canvas = document.querySelector('#qrcode canvas');
+  if (!canvas) return;
+  const a = document.createElement('a');
+  a.href = canvas.toDataURL('image/png');
+  a.download = '地圖評分QR碼.png';
+  a.click();
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+
+window.addEventListener('load', () => {
+  checkApiKeyOnLoad();
+  updateTopicDisplay();
+});
+</script>
+</body>
+</html>
