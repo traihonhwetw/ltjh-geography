@@ -180,6 +180,31 @@
   .grader-wrap { padding: 0 16px 40px; margin-top: 24px; }
   .score-num { font-size: 4.5rem; }
 }
+.id-field {
+  margin-bottom: 20px;
+}
+.id-label {
+  display: block;
+  font-size: .72rem;
+  font-weight: 500;
+  letter-spacing: .25em;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+.id-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--cream-2);
+  border: 1px solid var(--gold-line);
+  border-left: 3px solid var(--gold);
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 1rem;
+  color: var(--text-main);
+  outline: none;
+  transition: border-color .2s;
+}
+.id-input:focus { border-color: var(--gold); }
+.id-hint { font-size: .72rem; color: var(--text-muted); margin-top: 6px; letter-spacing: .04em; }
 </style>
 </head>
 <body>
@@ -201,11 +226,17 @@
 <div class="grader-wrap">
   <div id="gradeTag" class="grade-tag">— 地圖作業批改 —</div>
 
+  <div class="id-field">
+    <label class="id-label" for="studentId">班級座號</label>
+    <input class="id-input" type="text" id="studentId" placeholder="例如：二年一班12號 → 20112" maxlength="10">
+    <div class="id-hint">請填寫後再上傳地圖，成績才能記錄到系統。</div>
+  </div>
+
   <div class="upload-zone" id="uploadZone">
-    <input type="file" accept="image/*" capture="environment" id="fileInput">
+    <input type="file" accept="image/*" id="fileInput">
     <span class="upload-icon">🗺️</span>
     <div class="upload-title">上傳你的地圖作業</div>
-    <div class="upload-sub">點此選擇照片，或直接用相機拍照上傳</div>
+    <div class="upload-sub">點此從相簿或檔案選擇圖片</div>
   </div>
 
   <img id="previewImg" alt="地圖預覽">
@@ -226,6 +257,9 @@
 </div>
 
 <script>
+// 部署 Google Apps Script 後，將 Web App 網址貼在這裡
+const APPS_SCRIPT_URL = '';
+
 // Key 從 URL hash (#k=...) 讀取，首次使用後自動存入 localStorage
 function getApiKey() {
   let key = localStorage.getItem('geo_grader_key');
@@ -286,6 +320,14 @@ function loadFile(file) {
 
 async function submitGrading() {
   if (!base64Image) return;
+  const studentId = document.getElementById('studentId').value.trim();
+  if (!studentId) {
+    document.getElementById('studentId').focus();
+    document.getElementById('studentId').style.borderColor = '#b84444';
+    showError('請先填寫班級座號再送出。');
+    return;
+  }
+  document.getElementById('studentId').style.borderColor = '';
   const apiKey = getApiKey();
   if (!apiKey) {
     showError('尚未設定 API Key，請用老師提供的 QR Code 重新掃描進入。');
@@ -318,7 +360,9 @@ async function submitGrading() {
     const text = data.candidates[0].content.parts[0].text;
     const match = text.match(/\{[\s\S]*\}/);
     if (!match) throw new Error('回應格式錯誤，請重試。');
-    showResult(JSON.parse(match[0]));
+    const result = JSON.parse(match[0]);
+    showResult(result);
+    saveToSheet(document.getElementById('studentId').value.trim(), result);
   } catch (err) {
     showError(err.message);
   } finally {
@@ -393,6 +437,17 @@ function showError(msg) {
     <div class="error-box">${msg}</div>
     <button class="retry-btn" onclick="resetAll()">重試</button>
   `;
+}
+
+function saveToSheet(studentId, r) {
+  if (!APPS_SCRIPT_URL) return;
+  const comment = `內容(${r.content_score}/60)：${r.content_comment} ／ 美感(${r.aesthetic_score}/40)：${r.aesthetic_comment}`;
+  fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ studentId, score: r.total_score, comment })
+  });
 }
 
 function resetAll() {
