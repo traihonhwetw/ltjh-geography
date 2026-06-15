@@ -257,30 +257,15 @@
 </div>
 
 <script>
-// 部署 Google Apps Script 後，將 Web App 網址貼在這裡
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbym52RdqtYgxRTQzyCZlpUggn3hYOm4d__96MHGJ2rjE3fTV2OBGr7pqQRcSjOQKHeR/exec';
 
-// Key 從 URL hash (#k=...) 讀取，首次使用後自動存入 localStorage
-function getApiKey() {
-  let key = localStorage.getItem('geo_grader_key');
-  if (key) return key;
-  const hash = new URLSearchParams(location.hash.slice(1));
-  key = hash.get('k');
-  if (key) {
-    localStorage.setItem('geo_grader_key', key);
-    history.replaceState(null, '', location.pathname + location.search);
-  }
-  return key;
-}
-
 const GRADE_INFO = {
-  '1': { label: '一年級', topic: '台灣地理（縣市行政區、地形、山脈、河流、氣候）或亞洲地理概論' },
-  '2': { label: '二年級', topic: '東亞、東南亞、南亞、西亞地理，或中國地理（省份、地形、河流）' },
-  '3': { label: '三年級', topic: '世界地理（歐洲、美洲、非洲、大洋洲）或全球議題地圖' }
+  '1': { label: '一年級' },
+  '2': { label: '二年級' },
+  '3': { label: '三年級' }
 };
 
 let base64Image = null;
-let mimeType = 'image/jpeg';
 
 const grade = new URLSearchParams(location.search).get('grade') || '1';
 const info = GRADE_INFO[grade] || GRADE_INFO['1'];
@@ -302,18 +287,30 @@ zone.addEventListener('drop', e => {
 });
 
 function loadFile(file) {
-  mimeType = file.type || 'image/jpeg';
   const reader = new FileReader();
   reader.onload = e => {
-    const src = e.target.result;
-    base64Image = src.split(',')[1];
-    const img = document.getElementById('previewImg');
-    img.src = src;
-    img.style.display = 'block';
-    zone.style.display = 'none';
-    document.getElementById('submitBar').style.display = 'block';
-    document.getElementById('resultBox').innerHTML = '';
-    document.getElementById('loadingBox').style.display = 'none';
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 1200;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+        else { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const compressed = canvas.toDataURL('image/jpeg', 0.75);
+      base64Image = compressed.split(',')[1];
+      const preview = document.getElementById('previewImg');
+      preview.src = compressed;
+      preview.style.display = 'block';
+      zone.style.display = 'none';
+      document.getElementById('submitBar').style.display = 'block';
+      document.getElementById('resultBox').innerHTML = '';
+      document.getElementById('loadingBox').style.display = 'none';
+    };
+    img.src = e.target.result;
   };
   reader.readAsDataURL(file);
 }
@@ -328,11 +325,6 @@ async function submitGrading() {
     return;
   }
   document.getElementById('studentId').style.borderColor = '';
-  const apiKey = getApiKey();
-  if (!apiKey) {
-    showError('尚未設定 API Key，請用老師提供的 QR Code 重新掃描進入。');
-    return;
-  }
 
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;
@@ -341,28 +333,15 @@ async function submitGrading() {
   document.getElementById('resultBox').innerHTML = '';
 
   try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-        body: JSON.stringify({
-          contents: [{ parts: [
-            { text: buildPrompt() },
-            { inline_data: { mime_type: mimeType, data: base64Image } }
-          ]}],
-          generationConfig: { temperature: 0.3, maxOutputTokens: 1024 }
-        })
-      }
-    );
+    const payload = JSON.stringify({ image: base64Image, mimeType: 'image/jpeg', grade, studentId });
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'data=' + encodeURIComponent(payload)
+    });
     const data = await res.json();
-    if (data.error) throw new Error(data.error.message);
-    const text = data.candidates[0].content.parts[0].text;
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error('回應格式錯誤，請重試。');
-    const result = JSON.parse(match[0]);
-    showResult(result);
-    saveToSheet(document.getElementById('studentId').value.trim(), result);
+    if (!data.ok) throw new Error(data.error || '批改失敗，請重試。');
+    showResult(data.result);
   } catch (err) {
     showError(err.message);
   } finally {
@@ -370,34 +349,6 @@ async function submitGrading() {
     btn.textContent = '送出批改';
     document.getElementById('loadingBox').style.display = 'none';
   }
-}
-
-function buildPrompt() {
-  return `你是台灣國中地理老師，正在批改${info.label}學生的空白地圖填寫作業。
-
-地圖學習範圍參考：${info.topic}
-
-【評分標準，滿分100分】
-
-內容 60分
-・正確性 30分：地名、位置、地理資訊是否正確，有無標錯
-・完整性 30分：課程範圍內的重要地點是否都有標記，有無遺漏
-
-美感 40分
-・顏色豐富度 20分：是否用多種顏色區分不同類別，配色是否協調
-・整體美感 20分：字跡清晰、標記整齊、圖面視覺吸引力
-
-請仔細評估學生的努力與表現。評語請用繁體中文，語氣要鼓勵學生，先肯定優點再提出改進空間。
-
-僅回傳以下 JSON，不要有任何其他文字：
-{
-  "content_score": 整數(0-60),
-  "aesthetic_score": 整數(0-40),
-  "total_score": 整數(兩者相加),
-  "content_comment": "內容評語：說明標記了哪些重點，缺少什麼",
-  "aesthetic_comment": "美感評語：顏色使用與視覺整體表現",
-  "overall_comment": "整體鼓勵語（1到2句，積極正向）"
-}`;
 }
 
 function showResult(r) {
