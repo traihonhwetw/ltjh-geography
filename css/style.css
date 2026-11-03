@@ -232,15 +232,26 @@ body {
 
 /* ── Student works ── */
 .works-section {
-  max-width: 920px;
-  margin: 18px auto 42px;
+  max-width: 1000px;
+  margin: 18px auto 52px;
+}
+.works-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+  padding: 28px 32px;
+  background: linear-gradient(120deg, #f4df9b 0%, #fbf7eb 51%, #d7e8df 100%);
+  border: 1px solid rgba(169, 128, 29, .28);
+  border-left: 7px solid var(--gold);
 }
 .works-title {
   display: flex;
   align-items: center;
   gap: 14px;
   font-family: 'Cormorant Garamond', 'Noto Sans TC', serif;
-  font-size: 2rem;
+  font-size: 2.15rem;
   font-weight: 500;
   letter-spacing: .08em;
   color: var(--text-main);
@@ -249,12 +260,29 @@ body {
   width: 17px;
   height: 24px;
   flex: 0 0 17px;
-  border: 3px solid var(--gold);
+  border: 3px solid #c99722;
 }
 .works-intro {
-  margin: 12px 0 28px 31px;
-  color: var(--text-muted);
+  margin: 10px 0 0 31px;
+  color: #4d5143;
   font-size: .95rem;
+}
+.works-count {
+  font-family: 'Cormorant Garamond', serif;
+  color: #80601c;
+  font-size: 4rem;
+  font-weight: 600;
+  line-height: .7;
+  text-align: right;
+}
+.works-count span {
+  display: inline-block;
+  margin-top: 12px;
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: .55rem;
+  font-weight: 700;
+  letter-spacing: .2em;
+  line-height: 1.55;
 }
 .works-grid {
   display: grid;
@@ -264,26 +292,73 @@ body {
 .work-card {
   display: flex;
   flex-direction: column;
-  min-height: 330px;
-  padding: 28px;
+  overflow: hidden;
+  min-height: 390px;
   background: #fffdf8;
   border: 1px solid var(--gold-line);
-  border-top: 3px solid var(--gold);
+  border-top: none;
+  transition: transform .24s ease, box-shadow .24s ease;
+}
+.work-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 30px rgba(46, 42, 24, .12);
+}
+.work-visual {
+  position: relative;
+  height: 116px;
+  overflow: hidden;
+}
+.work-visual > span {
+  position: absolute;
+  right: 21px;
+  bottom: -20px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 8rem;
+  font-weight: 600;
+  line-height: 1;
+  opacity: .22;
+}
+.work-visual i, .work-visual b { position: absolute; display: block; }
+.work-card-home .work-visual { background: linear-gradient(135deg, #d9e9e1, #f0ce70); }
+.work-card-home .work-visual span { color: #4e6f66; }
+.work-card-home .work-visual i {
+  left: 34px; bottom: 0; width: 80px; height: 67px;
+  background: #f7f0d8; border: 3px solid #5d6652; border-bottom: none;
+}
+.work-card-home .work-visual b {
+  left: 24px; bottom: 63px; width: 0; height: 0;
+  border-left: 51px solid transparent; border-right: 51px solid transparent; border-bottom: 42px solid #66785c;
+}
+.work-card-ice .work-visual { background: linear-gradient(135deg, #cce8eb, #e3eef2 50%, #f0bc77); }
+.work-card-ice .work-visual span { color: #337786; }
+.work-card-ice .work-visual i {
+  left: 32px; bottom: -26px; width: 98px; height: 86px;
+  background: #f6fbfa; border: 3px solid #397b88; border-radius: 50%;
+}
+.work-card-ice .work-visual b {
+  left: 52px; bottom: 38px; width: 27px; height: 27px;
+  background: #e67b67; border: 3px solid #fff4dd; border-radius: 50%;
+}
+.work-copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 23px 28px 27px;
 }
 .work-student {
-  color: var(--gold);
+  color: #9a741d;
   font-size: .72rem;
   font-weight: 700;
   letter-spacing: .18em;
 }
 .work-card h3 {
-  margin: 10px 0 14px;
+  margin: 8px 0 13px;
   font-family: 'Cormorant Garamond', 'Noto Sans TC', serif;
   font-size: 1.55rem;
   font-weight: 600;
   letter-spacing: .06em;
 }
-.work-card > p:not(.work-student) {
+.work-copy > p:not(.work-student) {
   color: var(--text-muted);
   font-size: .9rem;
   line-height: 1.95;
@@ -294,7 +369,7 @@ body {
   gap: 10px;
   width: max-content;
   margin-top: auto;
-  padding-top: 22px;
+  padding-top: 20px;
   color: var(--text-main);
   font-size: .78rem;
   font-weight: 700;
@@ -447,8 +522,10 @@ body {
   .notice { padding: 16px 20px; flex-direction: column; gap: 8px; }
   .content { padding: 24px 20px; }
   .works-grid { grid-template-columns: 1fr; }
+  .works-hero { padding: 23px; }
   .works-title { font-size: 1.65rem; }
   .works-intro { margin-left: 0; }
+  .works-count { display: none; }
 }
 @media (max-width: 480px) {
   .header-text h1 { font-size: 1.8rem; }
