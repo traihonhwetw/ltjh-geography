@@ -1,0 +1,52 @@
+/* Editorial gallery. Scoped to the works page. */
+.works-page { background: #f7f5ef; }
+.works-page .content { max-width: 1240px; background: transparent; padding: 52px 48px 64px; }
+.works-page .works-section { max-width: none; margin: 0; }
+.gallery-kicker { display: flex; align-items: center; gap: 12px; color: #262923; font-size: .7rem; font-weight: 700; letter-spacing: .16em; }
+.gallery-kicker > span:first-child { width: 14px; height: 21px; border: 3px solid #edc526; }
+.gallery-kicker .kicker-en { margin-left: auto; color: #73766c; font-size: .61rem; letter-spacing: .16em; }
+.gallery-heading { display: grid; grid-template-columns: 1.5fr 1fr; align-items: end; gap: 60px; padding: 38px 0 44px; }
+.gallery-overline { color: #65685e; font-size: .77rem; letter-spacing: .14em; margin-bottom: 14px; }
+.gallery-heading h2 { font-family: 'Noto Sans TC', sans-serif; font-size: clamp(1.8rem, 3.1vw, 2.65rem); font-weight: 900; letter-spacing: -.035em; line-height: 1.4; color: #20241e; }
+.title-stop { color: #a48114; }
+.gallery-deck { border-left: 1px solid #d4d3c9; padding-left: 28px; }
+.gallery-deck p { color: #63675b; font-size: .88rem; line-height: 2; }
+.gallery-deck a { display: inline-flex; align-items: center; gap: 30px; margin-top: 20px; text-decoration: none; color: #23271f; font-weight: 700; font-size: .74rem; border-bottom: 3px solid #edc526; padding-bottom: 7px; }
+.gallery-deck a:hover { border-color: #20241e; }
+.gallery-index { display: flex; justify-content: space-between; gap: 16px; border-top: 2px solid #23271f; padding: 13px 0; color: #51564a; font-size: .67rem; letter-spacing: .13em; }
+.gallery-index span:last-child { color: #7b7d74; font-size: .61rem; }
+.works-page .works-grid { display: block; }
+.works-page .work-card { display: grid; grid-template-columns: 1.2fr 1fr; align-items: center; gap: 44px; overflow: visible; min-height: 0; padding: 28px 0 36px; margin-bottom: 0; background: transparent; border: 0; border-bottom: 1px solid #cdcec3; box-shadow: none; transform: none; }
+.works-page .work-card:hover { box-shadow: none; transform: none; }
+.work-preview { min-width: 0; background: #111410; }
+.work-preview iframe { display: block; width: 100%; height: 330px; border: 0; background: #000; }
+.work-preview > p { display: flex; justify-content: space-between; gap: 12px; color: #d7d9ce; font-size: .59rem; letter-spacing: .09em; padding: 11px 16px; }
+.work-preview > p span:last-child { color: #a3a89a; }
+.works-page .work-copy { padding: 8px 0; }
+.works-page .work-student { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; color: #74786c; font-size: .65rem; font-weight: 400; letter-spacing: .1em; }
+.work-student span { color: #333a2b; font-weight: 700; border-bottom: 2px solid #e9c42c; padding-bottom: 5px; }
+.works-page .work-card h3 { font-family: 'Noto Sans TC', sans-serif; color: #20241e; font-size: 1.9rem; font-weight: 900; letter-spacing: -.02em; margin: 16px 0 18px; line-height: 1.4; }
+.works-page .work-copy > p:not(.work-student) { color: #62675a; font-size: .86rem; line-height: 2; }
+.works-page .work-link { align-self: flex-start; width: auto; min-height: 42px; margin-top: 24px; padding: 10px 18px; background: #eac62b; color: #20241e; font-size: .69rem; letter-spacing: .08em; }
+.works-page .work-link span { color: #20241e; font-size: 1rem; }
+.works-page .work-link:hover { background: #20241e; color: #fff; }
+.works-page .work-link:hover span { color: #edc526; }
+.gallery-note { color: #74786b; font-size: .69rem; line-height: 1.9; margin-top: 22px; }
+.works-page a:focus-visible, .work-preview iframe:focus-visible { outline: 3px solid #a27e13; outline-offset: 4px; }
+@media (max-width: 850px) {
+  .works-page .content { padding: 36px 24px 48px; }
+  .gallery-heading { gap: 26px; grid-template-columns: 1.3fr 1fr; }
+  .works-page .work-card { gap: 26px; grid-template-columns: 1fr 1fr; }
+  .work-preview iframe { height: 310px; }
+}
+@media (max-width: 620px) {
+  .gallery-kicker .kicker-en { display: none; }
+  .gallery-heading { grid-template-columns: 1fr; padding: 28px 0 30px; gap: 24px; }
+  .gallery-deck { padding-left: 18px; }
+  .gallery-deck p { font-size: .82rem; }
+  .works-page .work-card { grid-template-columns: 1fr; gap: 24px; padding: 20px 0 32px; }
+  .work-preview iframe { height: 300px; }
+  .works-page .work-copy { padding: 0; }
+  .works-page .work-card h3 { font-size: 1.65rem; }
+  .gallery-index { font-size: .6rem; letter-spacing: .06em; }
+}
