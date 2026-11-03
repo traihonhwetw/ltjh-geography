@@ -230,6 +230,81 @@ body {
   margin: 0 auto;
 }
 
+/* ── Student works ── */
+.works-section {
+  max-width: 920px;
+  margin: 18px auto 42px;
+}
+.works-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-family: 'Cormorant Garamond', 'Noto Sans TC', serif;
+  font-size: 2rem;
+  font-weight: 500;
+  letter-spacing: .08em;
+  color: var(--text-main);
+}
+.natgeo-frame {
+  width: 17px;
+  height: 24px;
+  flex: 0 0 17px;
+  border: 3px solid var(--gold);
+}
+.works-intro {
+  margin: 12px 0 28px 31px;
+  color: var(--text-muted);
+  font-size: .95rem;
+}
+.works-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.work-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 330px;
+  padding: 28px;
+  background: #fffdf8;
+  border: 1px solid var(--gold-line);
+  border-top: 3px solid var(--gold);
+}
+.work-student {
+  color: var(--gold);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .18em;
+}
+.work-card h3 {
+  margin: 10px 0 14px;
+  font-family: 'Cormorant Garamond', 'Noto Sans TC', serif;
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: .06em;
+}
+.work-card > p:not(.work-student) {
+  color: var(--text-muted);
+  font-size: .9rem;
+  line-height: 1.95;
+}
+.work-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: max-content;
+  margin-top: auto;
+  padding-top: 22px;
+  color: var(--text-main);
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-decoration: none;
+}
+.work-link span { color: var(--gold); font-size: 1.2rem; transition: transform .2s ease; }
+.work-link:hover { color: var(--gold); }
+.work-link:hover span { transform: translateX(4px); }
+
 .divider {
   border: none;
   border-top: 1px solid var(--gold-line);
@@ -371,6 +446,9 @@ body {
   .btn-row, .btn-row.sub { padding: 0 16px; }
   .notice { padding: 16px 20px; flex-direction: column; gap: 8px; }
   .content { padding: 24px 20px; }
+  .works-grid { grid-template-columns: 1fr; }
+  .works-title { font-size: 1.65rem; }
+  .works-intro { margin-left: 0; }
 }
 @media (max-width: 480px) {
   .header-text h1 { font-size: 1.8rem; }
