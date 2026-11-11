@@ -96,8 +96,9 @@ dt{color:var(--dim)} dd{margin:0;font-weight:700}
 </head>
 <body>
 <header class="bar">
-  <h1>臺灣地形拼圖</h1>
+  <h1 id="gameTitle">地理地圖拼圖</h1>
   <a class="ghost" href="../resources.html">回其他資源</a>
+  <a class="ghost" href="https://docs.google.com/spreadsheets/d/1bCdFI4DOdPm8khTGSDFJK3url2OXP0fc2pyimUllQ-g/edit" target="_blank" rel="noopener">老師管理</a>
   <span class="lvl" id="lvlName"></span>
   <span class="spacer"></span>
   <span class="stat"><small>最大一塊</small><b id="count">0 / 0 片</b></span>
@@ -120,7 +121,9 @@ dt{color:var(--dim)} dd{margin:0;font-weight:700}
       <label class="fl" for="sid">班級座號（必填，5 個數字）</label>
       <input type="text" id="sid" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" placeholder="例如 10112" autocomplete="off" aria-describedby="sidErr" required>
       <div class="err" id="sidErr" role="alert" hidden>請輸入 5 個數字：班級 3 碼加座號 2 碼，例如一年一班 12 號是 10112。</div>
-      <button class="go" id="go">開始計時</button>
+      <div class="err" id="mapErr" role="alert" hidden></div>
+      <button class="pick" id="reloadMap" hidden style="margin-bottom:12px">重新讀取地圖</button>
+      <button class="go" id="go" disabled>讀取全班地圖中…</button>
     </div>
   </div>
 
@@ -158,12 +161,37 @@ let pieces=[],groups=new Map(),zTop=1;
 let running=false,finished=false,t0=0,elapsed=0,tick=0,target=PIECES,record=null;
 const drags=new Map();
 const uploads=new WeakSet();
+const DEFAULT_MAP={id:'default-v1',name:GAME,game:GAME,isDefault:true};
+let activeMap={...DEFAULT_MAP},roundMap={...DEFAULT_MAP},mapReady=false,mapLoading=false;
 
 function setImage(src,isCustom){
+  return new Promise((resolve,reject)=>{
   const im=new Image();
-  im.onload=()=>{img=im;custom=isCustom;$('#thumb').src=src;$('#peek').src=src};
-  im.onerror=()=>{alert('這個檔案打不開，請換一張 JPG 或 PNG 圖片。')};
+  im.onload=()=>{img=im;custom=isCustom;$('#thumb').src=src;$('#peek').src=src;resolve()};
+  im.onerror=()=>reject(new Error('地圖圖片無法開啟，請重新讀取，或請老師更換 JPG／PNG 圖片。'));
   im.src=src;
+  });
+}
+
+async function loadClassMap(){
+  if(mapLoading||running)return;
+  mapLoading=true;mapReady=false;$('#go').disabled=true;$('#go').textContent='讀取全班地圖中…';
+  $('#mapErr').hidden=true;$('#reloadMap').hidden=true;
+  const ac=new AbortController(),timer=setTimeout(()=>ac.abort(),25000);
+  try{
+    const res=await fetch(SCORE_URL+'?action=map&t='+Date.now(),{cache:'no-store',signal:ac.signal});
+    if(!res.ok)throw new Error('無法讀取全班地圖');
+    const j=await res.json(),m=j.map;
+    if(j.ok!==true||j.protocol!==1||!m||!/^default-v1$|^m[0-9a-f]{32}$/.test(m.id)||typeof m.name!=='string'||typeof m.game!=='string')throw new Error('老師的地圖設定無法讀取');
+    if(!m.isDefault&&(!/^data:image\/(jpeg|png);base64,[A-Za-z0-9+/=]+$/.test(m.image)||m.image.length>1200000))throw new Error('地圖圖片格式不正確');
+    await setImage(m.isDefault?DEFAULT_SRC:m.image,false);
+    activeMap={id:m.id,name:m.name,game:m.game,isDefault:!!m.isDefault};
+    $('#gameTitle').textContent=m.name;document.title=m.name+'｜地理地圖拼圖';
+    $('#thumb').alt='本次地圖：'+m.name;$('#scoreHint').textContent=m.name+'｜完成後自動上傳成績';
+    mapReady=true;$('#go').disabled=false;$('#go').textContent='開始計時';
+  }catch(e){
+    $('#mapErr').textContent='目前無法取得老師設定的地圖。請確認網路後重新讀取。';$('#mapErr').hidden=false;$('#reloadMap').hidden=false;$('#go').textContent='請先重新讀取地圖';
+  }finally{clearTimeout(timer);mapLoading=false}
 }
 
 /* 一條拼圖邊：10 個控制點，三段貝茲曲線 */
@@ -186,7 +214,8 @@ function build(){
   const a=img.naturalWidth/img.naturalHeight;
   const maxW=W*(land?0.56:0.82),maxH=H*(land?0.64:0.48);
   PW=Math.min(maxW,maxH*a);PH=PW/a;
-  cols=6;rows=4;pw=PW/cols;ph=PH/rows;
+  [cols,rows]=[[6,4],[4,6],[8,3],[3,8]].reduce((best,g)=>Math.abs(Math.log(g[0]/g[1]/a))<Math.abs(Math.log(best[0]/best[1]/a))?g:best,[6,4]);
+  pw=PW/cols;ph=PH/rows;
   M=Math.ceil(Math.max(pw,ph)*0.36)+8;
   const dpr=Math.min(window.devicePixelRatio||1,2);
   const src=document.createElement('canvas');src.width=Math.round(PW*dpr);src.height=Math.round(PH*dpr);
@@ -237,12 +266,13 @@ function clearBoard(){
   pieces.forEach(p=>p.cv.remove());pieces=[];groups=new Map();zTop=1;
   showClock();showCount();
 }
-function toStart(){record=null;$('#upStatus').textContent='';$('#retry').hidden=true;$('#retry').disabled=false;clearBoard();$('#endVeil').hidden=true;$('#startVeil').hidden=false;$('#lvlName').textContent=''}
+function toStart(){record=null;$('#upStatus').textContent='';$('#retry').hidden=true;$('#retry').disabled=false;clearBoard();$('#endVeil').hidden=true;$('#startVeil').hidden=false;$('#lvlName').textContent='';loadClassMap()}
 function start(){
-  if(!img.naturalWidth)return;
+  if(!mapReady||mapLoading||!img.naturalWidth)return;
   const sidEl=$('#sid');
   if(!/^\d{5}$/.test(sidEl.value)){$('#sidErr').hidden=false;sidEl.focus();return}
   $('#sidErr').hidden=true;
+  roundMap={...activeMap};
   clearBoard();
   $('#startVeil').hidden=true;$('#endVeil').hidden=true;
   const r=stage.getBoundingClientRect();W=r.width;H=r.height;
@@ -291,13 +321,13 @@ function finish(){
   $('#endLvl').textContent=`${pieces.length} 片`;
   const sid=$('#sid').value;
   $('#endSid').textContent=sid;
-  record={game:GAME,sid,pieces:pieces.length,seconds:Math.round(elapsed/100)/10,time:fmt(elapsed),
+  record={game:roundMap.game,mapId:roundMap.id,sid,pieces:pieces.length,seconds:Math.round(elapsed/100)/10,time:fmt(elapsed),
     rid:Date.now().toString(36)+Math.random().toString(36).slice(2,10)};
   upload();
   $('#best').hidden=$('#bestDt').hidden=custom;
   if(!custom){
     let best=elapsed;
-    try{const k='map-jigsaw-best-'+target,old=parseFloat(localStorage.getItem(k));
+    try{const k='map-jigsaw-best-'+roundMap.id+'-'+target,old=parseFloat(localStorage.getItem(k));
       if(old&&old<best)best=old;else localStorage.setItem(k,String(elapsed));}catch(e){}
     $('#best').textContent=fmt(best)+(best===elapsed?'（就是這次）':'');
   }
@@ -357,6 +387,7 @@ $('#again').addEventListener('click',toStart);
 $('#restart').addEventListener('click',toStart);
 $('#peekBtn').addEventListener('click',e=>{const on=$('#peek').hidden;$('#peek').hidden=!on;e.currentTarget.setAttribute('aria-pressed',on)});
 $('#retry').addEventListener('click',upload);
+$('#reloadMap').addEventListener('click',loadClassMap);
 $('#sid').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,5);if(/^\d{5}$/.test(e.target.value))$('#sidErr').hidden=true});
 $('#sid').addEventListener('keydown',e=>{if(e.key==='Enter')start()});
 let rz=0;
@@ -365,8 +396,7 @@ window.addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{
   groups.forEach(G=>{const o=G[0];const nx=Math.max(0,Math.min(W-pw,o.x)),ny=Math.max(0,Math.min(H-ph,o.y));
     const dx=nx-o.x,dy=ny-o.y;if(dx||dy)G.forEach(q=>{q.x+=dx;q.y+=dy;draw(q)})});
 },150)});
-$('#scoreHint').textContent=SCORE_URL?'完成後成績會自動上傳給老師':'目前為練習模式，成績上傳尚未啟用';
-setImage(DEFAULT_SRC,false);showClock();
+showClock();loadClassMap();
 </script>
 </body>
 </html>
