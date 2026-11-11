@@ -6,7 +6,8 @@
 
 ## 啟用成績上傳
 
-目前 `taiwan-landform-jigsaw.html` 的 `SCORE_URL` 留空，網頁會明確顯示練習模式，不會宣稱已上傳。
+`taiwan-landform-jigsaw.html` 已設定成績接收網址。完成遊戲後會自動上傳，只有收到伺服器對應紀錄編號的成功回應，才顯示「成績已上傳」。
+如要改用另一份試算表，依照下列步驟建立與部署接收程式，再替換 `SCORE_URL`。
 
 1. 新增一份 Google 試算表。
 2. 在試算表選「擴充功能 → Apps Script」。

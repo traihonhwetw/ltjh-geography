@@ -71,9 +71,9 @@ function getLogSheet() {
   if (!ss.getSheetByName(SHEET_BEST)) {
     const best = ss.insertSheet(SHEET_BEST);
     best.getRange('A1').setFormula(
-      "=QUERY('" + SHEET_LOG + "'!A:I," +
+      "=IFNA(QUERY('" + SHEET_LOG + "'!A:I," +
       "\"select B,D,E,C,min(G),count(G) where C is not null group by B,D,E,C order by B,D,E " +
-      "label B '遊戲', D '班級', E '座號', C '班級座號', min(G) '最佳秒數', count(G) '挑戰次數'\",1)"
+      "label B '遊戲', D '班級', E '座號', C '班級座號', min(G) '最佳秒數', count(G) '挑戰次數'\",1),{\"遊戲\",\"班級\",\"座號\",\"班級座號\",\"最佳秒數\",\"挑戰次數\"})"
     );
     best.setFrozenRows(1);
   }
@@ -84,6 +84,7 @@ function getLogSheet() {
 function setup() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   if (!ss) throw new Error('請從 Google 試算表的「擴充功能 → Apps Script」執行 setup');
+  ss.setSpreadsheetTimeZone('Asia/Taipei');
   PropertiesService.getScriptProperties().setProperty(SPREADSHEET_KEY, ss.getId());
   getLogSheet();
 }
