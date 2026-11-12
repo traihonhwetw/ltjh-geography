@@ -93,6 +93,7 @@ input[type=text]{font:inherit;font-size:1.3rem;letter-spacing:.15em;width:100%;p
 dl{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;margin:0 0 20px}
 dt{color:var(--dim)} dd{margin:0;font-weight:700}
 </style>
+<link rel="stylesheet" href="miro-jigsaw.css?v=20261112-2">
 </head>
 <body>
 <header class="bar">
@@ -108,10 +109,13 @@ dt{color:var(--dim)} dd{margin:0;font-weight:700}
 </header>
 
 <main class="stage" id="stage">
+<svg class="art-marks" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g class="fine"><path d="M90 115q90-58 145 28t125-15"/><path d="m122 152 15-79m-44 36 76 6m-63-31 50 62m-52-2 52-57"/><ellipse cx="1280" cy="640" rx="53" ry="71" transform="rotate(28 1280 640)"/><path d="m1170 180 18-48 8 47 49-10-38 30 26 37-44-19-27 36 8-46-46-9z"/><path d="M95 670q35 77 88 22t121 54m-80-56 2 63"/><path d="M1167 740q-50 71-12 100m77-120 12 74"/><path d="M1120 97q-35 40-6 65"/></g><ellipse cx="261" cy="169" rx="29" ry="42" fill="#1948b5" transform="rotate(-27 261 169)"/><circle cx="1207" cy="268" r="18" fill="#df3328"/><path d="M190 744q70-64 97 13-60 41-97-13" fill="#f7cf3c" stroke="#181918" stroke-width="2"/><circle cx="1161" cy="708" r="12" fill="#181918"/><path d="m1300 563 15-30 10 32-26-2" fill="#1948b5"/><circle cx="101" cy="560" r="6" fill="#181918"/><circle cx="1334" cy="211" r="5" fill="#181918"/></svg>
   <img id="peek" alt="原圖" hidden>
 
   <div class="veil" id="startVeil">
     <div class="card" role="dialog" aria-labelledby="st">
+      <div class="eyebrow">GEOGRAPHY · PLAY &amp; DISCOVER</div>
+      <nav class="puzzle-menu" aria-label="選擇拼圖"><a href="taiwan-landform-jigsaw.html" aria-current="page">臺灣地形</a><a href="china-administrative-jigsaw.html">中國行政區</a><a href="china-landform-jigsaw.html">中國地形</a></nav>
       <h2 id="st">把地圖拼回來</h2>
       <p>拖動拼圖片，凹凸對上了會自動接在一起，接好的可以整塊一起拖。全部接成一張圖，計時就停止。</p>
       <div class="pic">
@@ -400,3 +404,4 @@ showClock();loadClassMap();
 </script>
 </body>
 </html>
+
