@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>臺灣位置與行政區拼圖</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --desk:#B4CCD2; --bar:#17384A; --bar-ink:#F2F6F5; --bar-dim:#A9C1C9;
+  --ink:#1B2B33; --dim:#55686F; --panel:#FFFFFF; --line:#D5DEDF; --go:#17384A; --go-ink:#FFFFFF;
+  --kai:"LXGW WenKai TC","BiauKai","DFKai-SB","Kaiti TC",serif;
+  --sans:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --desk:#12262F; --bar:#0A1920; --bar-ink:#E8EEF0; --bar-dim:#8AA3AC;
+    --ink:#F1F5F6; --dim:#A9BCC3; --panel:#16303B; --line:#2D4B58; --go:#DCE7EA; --go-ink:#10242E;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --desk:#12262F; --bar:#0A1920; --bar-ink:#E8EEF0; --bar-dim:#8AA3AC;
+  --ink:#F1F5F6; --dim:#A9BCC3; --panel:#16303B; --line:#2D4B58; --go:#DCE7EA; --go-ink:#10242E;
+}
+*,*::before,*::after{box-sizing:inherit}
+html,body{height:100%;margin:0}
+body{background:var(--desk);color:var(--ink);font-family:var(--sans);display:flex;flex-direction:column;overflow:hidden;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bar)}
+
+.bar{background:var(--bar);color:var(--bar-ink);display:flex;align-items:center;gap:8px 16px;padding:8px 16px;flex-wrap:wrap}
+.bar h1{font-family:var(--kai);font-weight:700;font-size:1.5rem;margin:0;letter-spacing:.04em}
+.bar .lvl{color:var(--bar-dim);font-size:.9rem}
+.bar .spacer{flex:1}
+.stat{display:flex;align-items:baseline;gap:6px}
+.stat small{color:var(--bar-dim);font-size:.8rem}
+.stat b{font-variant-numeric:tabular-nums;font-weight:700;font-size:1.05rem}
+#clock{font-family:var(--kai);font-size:1.75rem;min-width:5.2ch;text-align:right}
+button{font:inherit;cursor:pointer}
+.ghost{background:transparent;color:var(--bar-ink);border:1.5px solid var(--bar-dim);border-radius:999px;padding:6px 16px;min-height:40px;text-decoration:none;display:inline-flex;align-items:center}
+.ghost[aria-pressed="true"]{background:var(--bar-ink);color:var(--bar)}
+:focus-visible{outline:3px solid #F0B429;outline-offset:2px}
+
+.stage{flex:1;min-height:0;position:relative;overflow:hidden;touch-action:none}
+.pc{position:absolute;left:0;top:0;pointer-events:none;will-change:transform}
+.pc.glide{transition:transform .5s ease}
+@media (prefers-reduced-motion:reduce){.pc.glide{transition:none}}
+#peek{position:absolute;left:12px;bottom:12px;width:min(34%,300px);border-radius:10px;border:4px solid var(--panel);
+  box-shadow:0 6px 24px rgba(10,40,55,.35);z-index:100000;pointer-events:none}
+#peek[hidden]{display:none}
+
+.veil{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;
+  background:color-mix(in srgb,var(--desk) 80%,transparent);overflow:auto;z-index:200000}
+.veil[hidden]{display:none}
+#endVeil{background:transparent;align-items:flex-end;pointer-events:none}
+#endVeil .card{pointer-events:auto}
+@media (orientation:landscape){#endVeil{align-items:center;justify-content:flex-end;padding-right:12px}
+  #endVeil .card{width:min(100%,300px);padding:22px}#endVeil .time{font-size:3.4rem}}
+.card{background:var(--panel);color:var(--ink);border-radius:18px;padding:24px 28px;width:min(100%,480px);
+  box-shadow:0 12px 40px rgba(10,40,55,.25);max-height:100%;overflow:auto}
+.card h2{font-family:var(--kai);font-size:2rem;margin:0 0 8px;letter-spacing:.04em}
+.card p{margin:0 0 14px;line-height:1.7;color:var(--dim)}
+.pic{display:flex;gap:14px;align-items:center;margin-bottom:16px}
+.pic img{width:120px;height:90px;object-fit:cover;border-radius:8px;border:1.5px solid var(--line);flex:none}
+.pick{background:transparent;color:var(--ink);border:1.5px solid var(--line);border-radius:999px;padding:8px 16px;min-height:40px}
+.pic b{font-size:1.2rem}
+.pic small{display:block;color:var(--dim);margin-top:6px;line-height:1.5}
+fieldset{border:0;padding:0;margin:0 0 14px}
+legend,.fl{font-weight:700;font-size:.9rem;margin-bottom:8px;padding:0;display:block}
+.opts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.opt{display:block;border:1.5px solid var(--line);border-radius:12px;padding:10px 6px;text-align:center;cursor:pointer}
+.opt:has(input:checked){border-color:var(--go);background:color-mix(in srgb,var(--desk) 45%,transparent)}
+.opt:has(input:focus-visible){outline:3px solid #F0B429;outline-offset:2px}
+.opt input{position:absolute;opacity:0}
+.opt b{display:block}
+.opt span{color:var(--dim);font-size:.85rem}
+.err{color:#B3261E;font-size:.9rem;line-height:1.6;margin:-8px 0 14px}
+.err[hidden]{display:none}
+.up{margin:-6px 0 14px;font-weight:700;line-height:1.6}
+.up.bad{color:#B3261E}
+#retry{width:100%;margin-bottom:10px}
+#retry[hidden]{display:none}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .err,:root:not([data-theme="light"]) .up.bad{color:#FF9A8F}}
+input[type=text]{font:inherit;font-size:1.3rem;letter-spacing:.15em;width:100%;padding:10px 14px;border:1.5px solid var(--line);border-radius:12px;background:transparent;color:inherit;margin-bottom:16px;-webkit-user-select:text;user-select:text}
+.go{width:100%;background:var(--go);color:var(--go-ink);border:0;border-radius:999px;padding:14px;font-weight:700;font-size:1.1rem;min-height:52px}
+.time{font-family:var(--kai);font-size:4.2rem;line-height:1.1;margin:4px 0 12px;font-variant-numeric:tabular-nums}
+dl{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;margin:0 0 20px}
+dt{color:var(--dim)} dd{margin:0;font-weight:700}
+</style>
+<link rel="stylesheet" href="miro-jigsaw.css?v=20261112-2">
+</head>
+<body>
+<header class="bar">
+  <h1 id="gameTitle">臺灣位置與行政區拼圖</h1>
+  <a class="ghost" href="../resources.html">回其他資源</a>
+  <a class="ghost" href="https://docs.google.com/spreadsheets/d/1bCdFI4DOdPm8khTGSDFJK3url2OXP0fc2pyimUllQ-g/edit" target="_blank" rel="noopener">老師管理</a>
+  <span class="lvl" id="lvlName"></span>
+  <span class="spacer"></span>
+  <span class="stat"><small>最大一塊</small><b id="count">0 / 0 片</b></span>
+  <span class="stat"><b id="clock">0:00.0</b></span>
+  <button class="ghost" id="peekBtn" aria-pressed="false">看原圖</button>
+  <button class="ghost" id="restart">重新開始</button>
+</header>
+
+<main class="stage" id="stage">
+<svg class="art-marks" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g class="fine"><path d="M90 115q90-58 145 28t125-15"/><path d="m122 152 15-79m-44 36 76 6m-63-31 50 62m-52-2 52-57"/><ellipse cx="1280" cy="640" rx="53" ry="71" transform="rotate(28 1280 640)"/><path d="m1170 180 18-48 8 47 49-10-38 30 26 37-44-19-27 36 8-46-46-9z"/><path d="M95 670q35 77 88 22t121 54m-80-56 2 63"/><path d="M1167 740q-50 71-12 100m77-120 12 74"/><path d="M1120 97q-35 40-6 65"/></g><ellipse cx="261" cy="169" rx="29" ry="42" fill="#1948b5" transform="rotate(-27 261 169)"/><circle cx="1207" cy="268" r="18" fill="#df3328"/><path d="M190 744q70-64 97 13-60 41-97-13" fill="#f7cf3c" stroke="#181918" stroke-width="2"/><circle cx="1161" cy="708" r="12" fill="#181918"/><path d="m1300 563 15-30 10 32-26-2" fill="#1948b5"/><circle cx="101" cy="560" r="6" fill="#181918"/><circle cx="1334" cy="211" r="5" fill="#181918"/></svg>
+  <img id="peek" alt="原圖" hidden>
+
+  <div class="veil" id="startVeil">
+    <div class="card" role="dialog" aria-labelledby="st">
+      <div class="eyebrow">GEOGRAPHY · PLAY &amp; DISCOVER</div>
+      <nav class="puzzle-menu" aria-label="選擇拼圖"><a href="taiwan-landform-jigsaw.html">東亞與東南亞</a><a href="taiwan-location-administrative-jigsaw.html" aria-current="page">臺灣位置與行政區</a><a href="china-administrative-jigsaw.html">中國行政區</a><a href="china-landform-jigsaw.html">中國地形</a><a href="world-administrative-jigsaw.html">世界行政區</a><a href="world-landform-jigsaw.html">世界地形</a></nav>
+      <h2 id="st">臺灣位置與行政區拼圖</h2>
+      <p>拖動拼圖片，凹凸對上了會自動接在一起，接好的可以整塊一起拖。全部接成一張圖，計時就停止。</p>
+      <div class="pic">
+        <img id="thumb" alt="這次要拼的圖">
+        <div><b>24 片</b><small id="scoreHint">正在確認成績上傳設定…</small></div>
+      </div>
+      <label class="fl" for="sid">班級座號（必填，5 個數字）</label>
+      <input type="text" id="sid" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" placeholder="例如 10112" autocomplete="off" aria-describedby="sidErr" required>
+      <div class="err" id="sidErr" role="alert" hidden>請輸入 5 個數字：班級 3 碼加座號 2 碼，例如一年一班 12 號是 10112。</div>
+      <div class="err" id="mapErr" role="alert" hidden></div>
+      <button class="pick" id="reloadMap" hidden style="margin-bottom:12px">重新讀取地圖</button>
+      <button class="go" id="go" disabled>讀取地圖中…</button>
+    </div>
+  </div>
+
+  <div class="veil" id="endVeil" hidden>
+    <div class="card" role="dialog" aria-labelledby="et">
+      <h2 id="et">拼完了</h2>
+      <div class="time" id="finalTime"></div>
+      <dl>
+        <dt>片數</dt><dd id="endLvl"></dd>
+        <dt id="sidDt">班級座號</dt><dd id="endSid"></dd>
+        <dt id="bestDt">這台裝置的最佳紀錄</dt><dd id="best"></dd>
+      </dl>
+      <div class="up" id="upStatus" role="status"></div>
+      <button class="pick" id="retry" hidden>重新上傳成績</button>
+      <button class="go" id="again">再玩一次</button>
+    </div>
+  </div>
+</main>
+
+<script>
+/* ===== 老師設定區 ===== */
+/* 把 Apps Script 部署後拿到的網址貼在引號裡（結尾是 /exec） */
+const SCORE_URL="https://script.google.com/macros/s/AKfycbwz8FoMEA8qlA3nDrMCN3Xjar3dLY1Sap6VpcbFcztVCSkPkwFlfcHnkAvXzePvSyqeow/exec";
+const GAME="臺灣位置與行政區拼圖";
+const PIECES=24;
+/* ====================== */
+const DEFAULT_SRC="assets/taiwan-location-admin.png";
+const $=s=>document.querySelector(s);
+const stage=$('#stage');
+const hitCtx=document.createElement('canvas').getContext('2d');
+
+let img=new Image(),custom=false;
+let cols=4,rows=3,PW=0,PH=0,pw=0,ph=0,M=0,W=0,H=0;
+let pieces=[],groups=new Map(),zTop=1;
+let running=false,finished=false,t0=0,elapsed=0,tick=0,target=PIECES,record=null;
+const drags=new Map();
+const uploads=new WeakSet();
+const DEFAULT_MAP={id:'taiwan-location-admin-v1',name:GAME,game:GAME,isDefault:true};
+let activeMap={...DEFAULT_MAP},roundMap={...DEFAULT_MAP},mapReady=false,mapLoading=false;
+
+function setImage(src,isCustom){
+  return new Promise((resolve,reject)=>{
+  const im=new Image();
+  im.onload=()=>{img=im;custom=isCustom;$('#thumb').src=src;$('#peek').src=src;resolve()};
+  im.onerror=()=>reject(new Error('地圖圖片無法開啟，請重新讀取，或請老師更換 JPG／PNG 圖片。'));
+  im.src=src;
+  });
+}
+
+async function loadClassMap(){
+  if(mapLoading||running)return;
+  mapLoading=true;mapReady=false;$('#go').disabled=true;$('#go').textContent='讀取地圖中…';
+  $('#mapErr').hidden=true;$('#reloadMap').hidden=true;
+  try{
+    await setImage(DEFAULT_SRC,false);activeMap={...DEFAULT_MAP};
+    $('#gameTitle').textContent=GAME;document.title=GAME+'｜地理地圖拼圖';
+    $('#thumb').alt='本次地圖：'+GAME;$('#scoreHint').textContent=GAME+'｜完成後自動上傳成績';
+    mapReady=true;$('#go').disabled=false;$('#go').textContent='開始計時';
+  }catch(e){$('#mapErr').textContent='地圖圖片無法載入，請確認網路後重新讀取。';$('#mapErr').hidden=false;$('#reloadMap').hidden=false;$('#go').textContent='請先重新讀取地圖'}
+  finally{mapLoading=false}
+}
+
+/* 一條拼圖邊：10 個控制點，三段貝茲曲線 */
+function edge(x0,y0,horizontal,L,Wd,flat){
+  if(flat)return null;
+  const j=()=>(Math.random()*2-1)*0.04,t=0.1,a=j(),b=j(),c=j(),d=j(),e=j(),s=Math.random()<.5?1:-1;
+  const n=[[0,0],[.2,a],[.5+b+d,-t+c],[.5-t+b,t+c],[.5-2*t+b-d,3*t+c],[.5+2*t+b-d,3*t+c],[.5+t+b,t+c],[.5+b+d,-t+c],[.8,e],[1,0]];
+  return n.map(([u,v])=>horizontal?[x0+u*L,y0+s*v*Wd]:[x0+s*v*Wd,y0+u*L]);
+}
+const f=v=>v.toFixed(2);
+function seg(pts,x1,y1,rev){
+  if(!pts)return `L${f(x1)},${f(y1)}`;
+  const p=rev?pts.slice().reverse():pts;let s='';
+  for(let i=1;i<10;i+=3)s+=`C${f(p[i][0])},${f(p[i][1])} ${f(p[i+1][0])},${f(p[i+1][1])} ${f(p[i+2][0])},${f(p[i+2][1])}`;
+  return s;
+}
+
+function build(){
+  const land=W>H*1.05;
+  const a=img.naturalWidth/img.naturalHeight;
+  const maxW=W*(land?0.56:0.82),maxH=H*(land?0.64:0.48);
+  PW=Math.min(maxW,maxH*a);PH=PW/a;
+  [cols,rows]=[[6,4],[4,6],[8,3],[3,8]].reduce((best,g)=>Math.abs(Math.log(g[0]/g[1]/a))<Math.abs(Math.log(best[0]/best[1]/a))?g:best,[6,4]);
+  pw=PW/cols;ph=PH/rows;
+  M=Math.ceil(Math.max(pw,ph)*0.36)+8;
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  const src=document.createElement('canvas');src.width=Math.round(PW*dpr);src.height=Math.round(PH*dpr);
+  const sx=src.getContext('2d');sx.imageSmoothingQuality='high';sx.drawImage(img,0,0,src.width,src.height);
+  const hE=[],vE=[];
+  for(let r=0;r<=rows;r++){hE[r]=[];for(let c=0;c<cols;c++)hE[r][c]=edge(c*pw,r*ph,true,pw,ph,r===0||r===rows)}
+  for(let r=0;r<rows;r++){vE[r]=[];for(let c=0;c<=cols;c++)vE[r][c]=edge(c*pw,r*ph,false,ph,pw,c===0||c===cols)}
+  pieces=[];groups=new Map();
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    const x0=c*pw,y0=r*ph,x1=x0+pw,y1=y0+ph;
+    const d=`M${f(x0)},${f(y0)}`+seg(hE[r][c],x1,y0,false)+seg(vE[r][c+1],x1,y1,false)+seg(hE[r+1][c],x0,y1,true)+seg(vE[r][c],x0,y0,true)+'Z';
+    const path=new Path2D(d);
+    const cv=document.createElement('canvas');cv.className='pc';
+    cv.width=Math.ceil((pw+2*M)*dpr);cv.height=Math.ceil((ph+2*M)*dpr);
+    cv.style.width=(cv.width/dpr)+'px';cv.style.height=(cv.height/dpr)+'px';
+    const x=cv.getContext('2d');x.scale(dpr,dpr);x.translate(M-x0,M-y0);
+    x.save();x.shadowColor='rgba(0,20,30,.45)';x.shadowBlur=5*dpr;x.shadowOffsetY=2*dpr;x.fillStyle='#fff';x.fill(path);x.restore();
+    x.save();x.clip(path);x.drawImage(src,0,0,PW,PH);x.restore();
+    x.lineWidth=1;x.strokeStyle='rgba(0,20,30,.4)';x.stroke(path);
+    const p={r,c,x:0,y:0,cv,path,g:pieces.length};
+    groups.set(p.g,[p]);pieces.push(p);stage.appendChild(cv);
+  }
+}
+function draw(p){p.cv.style.transform=`translate3d(${p.x-M}px,${p.y-M}px,0)`}
+function at(r,c){return r<0||c<0||r>=rows||c>=cols?null:pieces[r*cols+c]}
+
+function scatter(){
+  const boxes=[],hw=pw/2+pw*0.18,hh=ph/2+ph*0.18;
+  pieces.slice().sort(()=>Math.random()-.5).forEach(p=>{
+    let best=null,bs=-Infinity;
+    for(let k=0;k<160;k++){
+      const x=hw+Math.random()*Math.max(1,W-2*hw),y=hh+Math.random()*Math.max(1,H-2*hh);let ov=0;
+      boxes.forEach(b=>{ov+=Math.max(0,Math.min(x+hw,b[2])-Math.max(x-hw,b[0]))*Math.max(0,Math.min(y+hh,b[3])-Math.max(y-hh,b[1]))});
+      if(-ov>bs){bs=-ov;best=[x,y]}
+    }
+    boxes.push([best[0]-hw,best[1]-hh,best[0]+hw,best[1]+hh]);
+    p.x=best[0]-pw/2;p.y=best[1]-ph/2;p.cv.style.zIndex=++zTop;draw(p);
+  });
+}
+
+function fmt(ms){const t=Math.floor(ms/100),m=Math.floor(t/600),s=Math.floor(t/10)%60;return `${m}:${String(s).padStart(2,'0')}.${t%10}`}
+function showClock(){$('#clock').textContent=fmt(elapsed)}
+function showCount(){let big=0;groups.forEach(g=>{if(g.length>big)big=g.length});
+  $('#count').textContent=`${pieces.length&&big>1?big:0} / ${pieces.length} 片`}
+
+function clearBoard(){
+  running=false;finished=false;clearInterval(tick);elapsed=0;drags.clear();
+  pieces.forEach(p=>p.cv.remove());pieces=[];groups=new Map();zTop=1;
+  showClock();showCount();
+}
+function toStart(){record=null;$('#upStatus').textContent='';$('#retry').hidden=true;$('#retry').disabled=false;clearBoard();$('#endVeil').hidden=true;$('#startVeil').hidden=false;$('#lvlName').textContent='';loadClassMap()}
+function start(){
+  if(!mapReady||mapLoading||!img.naturalWidth)return;
+  const sidEl=$('#sid');
+  if(!/^\d{5}$/.test(sidEl.value)){$('#sidErr').hidden=false;sidEl.focus();return}
+  $('#sidErr').hidden=true;
+  roundMap={...activeMap};
+  clearBoard();
+  $('#startVeil').hidden=true;$('#endVeil').hidden=true;
+  const r=stage.getBoundingClientRect();W=r.width;H=r.height;
+  build();scatter();showCount();
+  $('#lvlName').textContent=$('#sid').value;
+  running=true;t0=performance.now();
+  tick=setInterval(()=>{elapsed=performance.now()-t0;showClock()},100);
+}
+
+function pick(px,py){
+  let hit=null,hz=-1;
+  for(const p of pieces){
+    const z=+p.cv.style.zIndex;if(z<hz)continue;
+    const lx=px-p.x+p.c*pw,ly=py-p.y+p.r*ph;
+    if(lx<p.c*pw-M||ly<p.r*ph-M||lx>(p.c+1)*pw+M||ly>(p.r+1)*ph+M)continue;
+    if(hitCtx.isPointInPath(p.path,lx,ly)){hit=p;hz=z}
+  }
+  return hit;
+}
+function snap(gid){
+  const tol=Math.max(12,Math.min(pw,ph)*0.22);
+  let merged=true;
+  while(merged){
+    merged=false;const G=groups.get(gid);
+    scan:for(const p of G)for(const [dr,dc] of [[0,1],[0,-1],[1,0],[-1,0]]){
+      const n=at(p.r+dr,p.c+dc);if(!n||n.g===gid)continue;
+      const ex=n.x-dc*pw-p.x,ey=n.y-dr*ph-p.y;
+      if(Math.abs(ex)<tol&&Math.abs(ey)<tol){
+        G.forEach(q=>{q.x+=ex;q.y+=ey});
+        const Hh=groups.get(n.g);groups.delete(n.g);
+        Hh.forEach(q=>{q.g=gid;G.push(q)});
+        merged=true;break scan;
+      }
+    }
+  }
+  groups.get(gid).forEach(draw);
+}
+function finish(){
+  running=false;finished=true;clearInterval(tick);elapsed=performance.now()-t0;showClock();
+  /* 把完成的圖移到不會被成績卡蓋住的位置 */
+  const land=W>H*1.05,o=pieces[0];
+  const tx=land?Math.max(8,(W-312-PW)/2):(W-PW)/2,ty=land?(H-PH)/2:Math.max(8,(H*0.56-PH)/2);
+  const dx=tx-o.x,dy=ty-o.y;
+  pieces.forEach(p=>{p.cv.classList.add('glide');p.x+=dx;p.y+=dy;draw(p)});
+  $('#finalTime').textContent=fmt(elapsed);
+  $('#endLvl').textContent=`${pieces.length} 片`;
+  const sid=$('#sid').value;
+  $('#endSid').textContent=sid;
+  record={game:roundMap.game,sid,pieces:pieces.length,seconds:Math.round(elapsed/100)/10,time:fmt(elapsed),
+    rid:Date.now().toString(36)+Math.random().toString(36).slice(2,10)};
+  upload();
+  $('#best').hidden=$('#bestDt').hidden=custom;
+  if(!custom){
+    let best=elapsed;
+    try{const k='map-jigsaw-best-'+roundMap.id+'-'+target,old=parseFloat(localStorage.getItem(k));
+      if(old&&old<best)best=old;else localStorage.setItem(k,String(elapsed));}catch(e){}
+    $('#best').textContent=fmt(best)+(best===elapsed?'（就是這次）':'');
+  }
+  setTimeout(()=>{$('#endVeil').hidden=false},600);
+}
+
+async function upload(){
+  const st=$('#upStatus'),btn=$('#retry');if(!record)return;
+  if(uploads.has(record))return;
+  btn.hidden=true;st.className='up';
+  if(!SCORE_URL){st.className='up bad';st.textContent='還沒設定成績上傳網址，這次成績沒有送出。';return}
+  st.textContent='成績上傳中…';
+  btn.disabled=true;
+  const ac=new AbortController(),to=setTimeout(()=>ac.abort(),20000),mine=record;
+  uploads.add(mine);
+  try{
+    const res=await fetch(SCORE_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify(mine),redirect:'follow',signal:ac.signal});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const j=await res.json();
+    if(j.ok!==true||j.rid!==mine.rid)throw new Error(j.error||'未收到正確的成績確認');
+    if(mine===record)st.textContent='成績已上傳 ✓';
+  }catch(e){
+    if(mine===record){st.className='up bad';st.textContent='成績沒有傳出去。請確認網路後按下面的按鈕再傳一次。';btn.hidden=false}
+  }finally{clearTimeout(to);uploads.delete(mine);if(mine===record)btn.disabled=false}
+}
+function pt(e){const r=stage.getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top]}
+stage.addEventListener('pointerdown',e=>{
+  if(!running)return;
+  const [x,y]=pt(e);const p=pick(x,y);if(!p)return;
+  for(const d of drags.values())if(d.gid===p.g)return;
+  if(drags.size)return;
+  const G=groups.get(p.g);
+  G.forEach(q=>{q.cv.style.zIndex=++zTop});
+  drags.set(e.pointerId,{gid:p.g,p,lx:x,ly:y});
+  try{stage.setPointerCapture(e.pointerId)}catch(_){}
+  e.preventDefault();
+});
+stage.addEventListener('pointermove',e=>{
+  const d=drags.get(e.pointerId);if(!d)return;
+  let [x,y]=pt(e);x=Math.max(8,Math.min(W-8,x));y=Math.max(8,Math.min(H-8,y));
+  const dx=x-d.lx,dy=y-d.ly;d.lx=x;d.ly=y;
+  groups.get(d.gid).forEach(q=>{q.x+=dx;q.y+=dy;draw(q)});
+});
+function drop(e){
+  const d=drags.get(e.pointerId);if(!d)return;
+  drags.delete(e.pointerId);if(!running)return;
+  const gid=d.p.g;snap(gid);showCount();
+  if(groups.size===1)finish();
+}
+stage.addEventListener('pointerup',drop);
+stage.addEventListener('pointercancel',drop);
+stage.addEventListener('contextmenu',e=>e.preventDefault());
+
+$('#go').addEventListener('click',start);
+$('#again').addEventListener('click',toStart);
+$('#restart').addEventListener('click',toStart);
+$('#peekBtn').addEventListener('click',e=>{const on=$('#peek').hidden;$('#peek').hidden=!on;e.currentTarget.setAttribute('aria-pressed',on)});
+$('#retry').addEventListener('click',upload);
+$('#reloadMap').addEventListener('click',loadClassMap);
+$('#sid').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,5);if(/^\d{5}$/.test(e.target.value))$('#sidErr').hidden=true});
+$('#sid').addEventListener('keydown',e=>{if(e.key==='Enter')start()});
+let rz=0;
+window.addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{
+  const r=stage.getBoundingClientRect();W=r.width;H=r.height;
+  groups.forEach(G=>{const o=G[0];const nx=Math.max(0,Math.min(W-pw,o.x)),ny=Math.max(0,Math.min(H-ph,o.y));
+    const dx=nx-o.x,dy=ny-o.y;if(dx||dy)G.forEach(q=>{q.x+=dx;q.y+=dy;draw(q)})});
+},150)});
+showClock();loadClassMap();
+</script>
+</body>
+</html>
+
