@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>北美洲熟悉度檢測｜國三上第3課</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;900&display=swap">
+<style>
+:root{
+  --paper:#EDF2EF; --surface:#FFFFFF; --ink:#16282B; --ink-2:#4C6063; --line:#C9D4D0;
+  --river:#1B6A8A; --river-ink:#FFFFFF;
+  --ok:#1C7A57; --ok-bg:#E0F1E8; --no:#B93D26; --no-bg:#F8E4DE;
+  --b1:#CC8C5F; --b2:#E6B66C; --b3:#EDDC8E; --b4:#A8CB8E;
+  --band-op:.62;
+  --serif:"Noto Serif TC","Songti TC","PMingLiU",serif;
+  --sans:"Noto Sans TC","PingFang TC","Microsoft JhengHei","Heiti TC",sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#101919; --surface:#192525; --ink:#E7EEEA; --ink-2:#A3B4B1; --line:#33453F;
+    --river:#6FBEDC; --river-ink:#0C1A1F;
+    --ok:#5CC79A; --ok-bg:#173A2D; --no:#F08A72; --no-bg:#42211A;
+    --b1:#8A5435; --b2:#8F6C2F; --b3:#7C7335; --b4:#3F6B47;
+    --band-op:.75;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#101919; --surface:#192525; --ink:#E7EEEA; --ink-2:#A3B4B1; --line:#33453F;
+  --river:#6FBEDC; --river-ink:#0C1A1F;
+  --ok:#5CC79A; --ok-bg:#173A2D; --no:#F08A72; --no-bg:#42211A;
+  --b1:#8A5435; --b2:#8F6C2F; --b3:#7C7335; --b4:#3F6B47;
+  --band-op:.75;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+body{margin:0;min-height:100%;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.65;-webkit-text-size-adjust:100%}
+[hidden]{display:none!important}
+.wrap{max-width:1040px;margin:0 auto;padding:20px 16px 48px}
+h1,h2,h3{font-family:var(--serif);margin:0;line-height:1.3}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--river);outline-offset:3px}
+
+/* 地圖 */
+.map svg{display:block;width:100%;height:auto}
+.band{opacity:var(--band-op)}
+.contour{fill:none;stroke:var(--ink);stroke-opacity:.38;stroke-width:1}
+.spoke{stroke:var(--ink);stroke-opacity:.3;stroke-width:1;stroke-dasharray:3 4}
+.link{stroke:var(--ink);stroke-opacity:.22;stroke-width:1.2}
+.link.on{stroke-opacity:.7}
+.dot{fill:var(--surface);stroke:var(--ink);stroke-opacity:.55;stroke-width:1.4}
+.dot.ok{fill:var(--ok);stroke:var(--surface);stroke-opacity:1}
+.dot.no{fill:var(--surface);stroke:var(--no);stroke-opacity:1;stroke-width:2}
+.cross{stroke:var(--no);stroke-width:2;stroke-linecap:round}
+.cur{fill:none;stroke:var(--river);stroke-width:3}
+.peak{fill:var(--surface);stroke:var(--ink);stroke-width:1.2}
+.maptext{font-family:var(--serif);font-weight:600;fill:var(--ink);font-size:12px}
+@media (prefers-reduced-motion:no-preference){
+  .cur{animation:pulse 1.6s ease-in-out infinite;transform-origin:center;transform-box:fill-box}
+  @keyframes pulse{50%{transform:scale(1.35);opacity:.45}}
+}
+
+/* 開始畫面 */
+.start{display:grid;gap:28px;align-items:center}
+.start h1{font-weight:900;font-size:clamp(2.2rem,8vw,3.6rem);letter-spacing:.04em}
+.start .sub{color:var(--ink-2);margin:6px 0 0}
+.start p{max-width:34em;margin:14px 0 0}
+.layers{list-style:none;padding:0;margin:20px 0 0;display:grid;gap:8px;max-width:30em}
+.layers li{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:baseline}
+.chip{display:inline-block;font-family:var(--serif);font-weight:600;font-size:.88rem;padding:1px 10px;border-radius:3px;color:#16282B;white-space:nowrap}
+.chip.l1{background:#CC8C5F}.chip.l2{background:#E6B66C}.chip.l3{background:#EDDC8E}.chip.l4{background:#A8CB8E}
+.field{margin-top:24px;display:grid;gap:6px;max-width:22em}
+.field label{font-size:.92rem;color:var(--ink-2)}
+.field input{font:inherit;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:6px;padding:10px 12px;width:100%}
+.btn{display:inline-block;border:0;border-radius:6px;background:var(--river);color:var(--river-ink);font-weight:700;padding:13px 26px;font-size:1.05rem;min-height:48px}
+.btn.ghost{background:transparent;color:var(--river);box-shadow:inset 0 0 0 1.5px var(--river)}
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px}
+@media (min-width:820px){.start{grid-template-columns:1fr 400px}}
+
+/* 作答畫面 */
+.quiz{display:grid;gap:18px}
+.status{display:grid;grid-template-columns:138px 1fr;gap:16px;align-items:center}
+.meter-num{font-family:var(--serif);font-weight:900;font-size:3rem;line-height:1;font-variant-numeric:tabular-nums}
+.meter-num small{font-size:1.2rem;font-weight:600;margin-left:2px}
+.meter-label{font-size:.9rem;color:var(--ink-2)}
+.track{position:relative;height:10px;border-radius:5px;background:var(--line);overflow:hidden;margin-top:10px}
+.track i{position:absolute;inset:0 auto 0 0;border-radius:5px;transition:width .5s ease}
+.track .done{background:var(--ink-2);opacity:.45}
+.track .got{background:var(--ok)}
+.count{font-size:.9rem;color:var(--ink-2);margin-top:6px;font-variant-numeric:tabular-nums}
+.card{background:var(--surface);border-radius:10px;padding:20px 18px 22px;border:1px solid var(--line)}
+.path{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:.92rem;color:var(--ink-2)}
+.qtext{font-family:var(--serif);font-weight:600;font-size:1.3rem;margin:14px 0 18px;line-height:1.55}
+.opts{display:grid;gap:10px}
+.opt{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;text-align:left;width:100%;background:var(--paper);border:1.5px solid var(--line);border-radius:8px;padding:13px 14px;min-height:52px;line-height:1.5}
+.opt .k{font-family:var(--serif);font-weight:600;width:1.6em;height:1.6em;border-radius:50%;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line);font-size:.95rem}
+.opt[disabled]{cursor:default;color:var(--ink)}
+.opt.right{background:var(--ok-bg);border-color:var(--ok)}
+.opt.right .k{background:var(--ok);color:var(--surface);border-color:var(--ok)}
+.opt.wrong{background:var(--no-bg);border-color:var(--no)}
+.opt.wrong .k{background:var(--no);color:var(--surface);border-color:var(--no)}
+.opt.dim{opacity:.55}
+.fb{margin-top:16px;padding-top:16px;border-top:1px dashed var(--line)}
+.fb strong{font-family:var(--serif)}
+.fb .v-ok{color:var(--ok)}.fb .v-no{color:var(--no)}
+.fb p{margin:4px 0 0}
+.fb .pg{font-size:.9rem;color:var(--ink-2)}
+@media (min-width:820px){
+  .quiz{grid-template-columns:340px 1fr;align-items:start;gap:28px}
+  .status{grid-template-columns:1fr;position:sticky;top:20px}
+  .qtext{font-size:1.45rem}
+}
+
+/* 分析畫面 */
+.result h1{font-weight:900;font-size:clamp(1.7rem,6vw,2.4rem)}
+.who{color:var(--ink-2);font-size:.92rem;margin:4px 0 0}
+.top{display:grid;gap:20px;align-items:center;margin-top:18px}
+.big{font-family:var(--serif);font-weight:900;font-size:clamp(4rem,18vw,6rem);line-height:1;font-variant-numeric:tabular-nums}
+.big small{font-size:.35em;font-weight:600}
+.verdict{font-family:var(--serif);font-weight:600;font-size:1.35rem;margin-top:6px}
+.diag{margin:10px 0 0;max-width:32em}
+.sec{margin-top:34px}
+.sec h2{font-size:1.25rem;font-weight:600;padding-bottom:8px;border-bottom:2px solid var(--ink)}
+.bars{display:grid;gap:14px;margin-top:16px}
+.bar{display:grid;grid-template-columns:minmax(6.5em,auto) 1fr 4.2em;gap:12px;align-items:center}
+.bar .nm{font-weight:500}
+.bar .nm span{display:block;font-size:.82rem;color:var(--ink-2);font-weight:400;line-height:1.3}
+.bar .tr{height:14px;border-radius:3px;background:var(--line);overflow:hidden}
+.bar .tr i{display:block;height:100%}
+.bar .pc{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.bar .pc span{display:block;font-weight:400;font-size:.8rem;color:var(--ink-2)}
+.tree,.tree ul{list-style:none;margin:0;padding:0}
+.tree{margin-top:14px}
+.tree ul{margin-left:11px;padding-left:16px;border-left:1.5px solid var(--line)}
+.tree li{padding:5px 0}
+.node{display:flex;gap:10px;align-items:center;justify-content:space-between}
+.node b{font-weight:500}
+.node .sc{font-variant-numeric:tabular-nums;font-size:.9rem;padding:0 9px;border-radius:3px;white-space:nowrap}
+.sc.full{background:var(--ok-bg);color:var(--ok)}
+.sc.part{background:var(--line);color:var(--ink)}
+.sc.none{background:var(--no-bg);color:var(--no)}
+.miss{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:12px}
+.miss li{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--no);border-radius:6px;padding:14px 16px}
+.miss h3{font-size:1.05rem;font-weight:600;margin:8px 0 8px;line-height:1.5}
+.miss p{margin:2px 0;font-size:.95rem}
+.miss .ya{color:var(--no)}.miss .ca{color:var(--ok);font-weight:700}
+.miss .ex{color:var(--ink-2);margin-top:6px}
+.none-miss{margin-top:14px}
+@media (min-width:820px){.top{grid-template-columns:400px 1fr;gap:36px}}
+.site-tools{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:22px;font-size:.9rem}.site-tools a{color:var(--river)}.upload-status{padding:12px 16px;margin:0 0 22px;border:1px solid var(--line);border-radius:6px;background:var(--surface)}.upload-status p{margin:0}.upload-status button{margin-top:10px}.input-error{color:var(--no);font-size:.9rem;margin-top:6px}.field .input-note{font-size:.85rem;color:var(--ink-2);margin:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="site-tools" aria-label="測驗導覽"><a href="../resources.html#concept-check">← 回其他資源</a><span>國三上・北美洲觀念檢測</span></nav>
+  <div class="upload-status"><p id="uploadStatus" role="status" aria-live="polite">完成測驗後，成績會自動上傳給老師；重練錯題會另外記錄補強成果。</p><button id="retryUpload" class="btn ghost" hidden>重新上傳成績</button></div>
+
+  <section id="start" class="start">
+    <div>
+      <h1>北美洲<br>熟悉度檢測</h1>
+      <p class="sub">國三上地理　第3課　北美洲</p>
+      <p>這一課的內容像一張心智圖：中心是最根本的觀念，愈往外愈細。題目從中心開始，一圈一圈往外問。每答一題，熟悉度就會更新，地圖上的點也會亮起來。</p>
+      <p class="sub" style="font-size:.85rem">依 115 學年度課本第 38～47 頁設計；圖表數字以課本標示年份為準。</p>
+      <ul class="layers" id="legend"></ul>
+      <div class="field">
+        <label for="sid">班級座號（必填，5 個數字）</label>
+        <input id="sid" type="text" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" autocomplete="off" placeholder="例如：10105" required aria-describedby="sidHelp sidError">
+        <p id="sidHelp" class="input-note">班級 3 碼＋座號 2 碼，例如一年一班 5 號是 10105。</p>
+        <p id="sidError" class="input-error" role="alert" hidden>請輸入剛好 5 個數字的班級座號。</p>
+      </div>
+      <div class="actions"><button class="btn" id="go">開始作答</button></div>
+    </div>
+    <div class="map" id="mapStart" aria-hidden="true"></div>
+  </section>
+
+  <section id="quiz" class="quiz" hidden>
+    <div class="status">
+      <div class="map" id="mapQuiz"></div>
+      <div>
+        <div class="meter-label">熟悉度</div>
+        <div class="meter-num" aria-live="polite"><span id="pct">0</span><small>%</small></div>
+        <div class="track" aria-hidden="true"><i class="done" id="trDone"></i><i class="got" id="trGot"></i></div>
+        <div class="count" id="count"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="path" id="path"></div>
+      <h2 class="qtext" id="qtext" tabindex="-1"></h2>
+      <div class="opts" id="opts"></div>
+      <div class="fb" id="fb" hidden></div>
+    </div>
+  </section>
+
+  <section id="result" class="result" hidden>
+    <h1>你的北美洲心智圖</h1>
+    <p class="who" id="rWho"></p>
+    <div class="top">
+      <div class="map" id="mapResult"></div>
+      <div>
+        <div class="meter-label">熟悉度</div>
+        <div class="big"><span id="rPct">0</span><small>%</small></div>
+        <div class="verdict" id="rVerdict"></div>
+        <p class="diag" id="rDiag"></p>
+        <div class="actions">
+          <button class="btn" id="retryMiss">重練答錯的題目</button>
+          <button class="btn ghost" id="restart">全部重新作答</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h2>從核心到細節，哪一層開始鬆動</h2>
+      <div class="bars" id="rLayers"></div>
+    </div>
+    <div class="sec">
+      <h2>三個小節的熟悉度</h2>
+      <div class="bars" id="rBranches"></div>
+    </div>
+    <div class="sec">
+      <h2>每個主題的答對情形</h2>
+      <ul class="tree" id="rTree"></ul>
+    </div>
+    <div class="sec">
+      <h2 id="rMissTitle">需要回頭看的題目</h2>
+      <ul class="miss" id="rMiss"></ul>
+      <p class="none-miss" id="rNoMiss" hidden>全部答對，沒有需要補的地方。</p>
+    </div>
+  </section>
+</div>
+
+<script>
+const LAYERS=[
+  {n:1,name:'核心',desc:'這一課到底在講什麼'},
+  {n:2,name:'主幹',desc:'三個小節各自的大觀念'},
+  {n:3,name:'分支',desc:'每個主題的重點'},
+  {n:4,name:'細節',desc:'數字、實例和應用'}
+];
+const BR={
+  A:{code:'3-1',name:'自然環境與氣象災害',pages:'38～42'},
+  B:{code:'3-2',name:'移民與多元文化',pages:'43'},
+  C:{code:'3-3',name:'經濟發展與全球影響',pages:'44～46'}
+};
+const NODES={
+  A1:'三大地形區',A2:'氣候類型與成因',A3:'氣象災害',
+  B1:'原住民族與移民',B2:'文化並存與地名',
+  C1:'商業性與科技化農業',C2:'工業區與產業中心',C3:'都市功能',C4:'美國的全球影響'
+};
+/* o 的第一個選項是正確答案，作答時會打亂順序 */
+const Q=[
+  {
+    "l": 1,
+    "b": "R",
+    "q": "依本課採用的「文化分區」，北美洲主要指哪兩個國家？",
+    "o": [
+      "美國與加拿大",
+      "美國與墨西哥",
+      "加拿大與巴西",
+      "墨西哥與巴拿馬"
+    ],
+    "e": "本書依文化差異分區，以美國、加拿大為北美洲；這與將墨西哥列入北美洲的自然地理分法不同。",
+    "p": 38
+  },
+  {
+    "l": 1,
+    "b": "R",
+    "q": "理解北美洲經濟發達的原因，哪一種解釋最完整？",
+    "o": [
+      "自然資源、科技與生產方式、市場經濟相互配合",
+      "只要礦產多，其他條件便不重要",
+      "只因全境都具有相同的溫暖氣候",
+      "因為每個地區都依賴同一種產業"
+    ],
+    "e": "遼闊土地與資源提供基礎，再配合機械化、科技、工商業與市場，形成發達經濟。",
+    "p": 44
+  },
+  {
+    "l": 1,
+    "b": "R",
+    "q": "北美洲今日多元文化的形成，與哪一種歷程最有關？",
+    "o": [
+      "原住民族與不同地區移民長期互動、融合",
+      "各地居民都來自同一個歐洲國家",
+      "北美洲在近代以前完全無人居住",
+      "當地文化只受到自然環境影響"
+    ],
+    "e": "原住民族加上陸續遷入的歐洲、非洲與亞洲移民，使文化來源多樣。",
+    "p": 43
+  },
+  {
+    "l": 1,
+    "b": "R",
+    "q": "北美洲農業人口較少，卻能大量生產並出口農產品，關鍵是什麼？",
+    "o": [
+      "機械化與專業化提高生產效率",
+      "每塊農地都投入密集手工勞力",
+      "只生產自家所需，幾乎不進入市場",
+      "農業完全不需要土地或自然條件"
+    ],
+    "e": "廣大耕地配合機械化、專業化與科技，使少量農業勞力也能大量生產。",
+    "p": 44
+  },
+  {
+    "l": 2,
+    "b": "A",
+    "q": "由西向東觀察北美洲，三大地形區的順序為何？",
+    "o": [
+      "西部高山、中部平原、東部高原丘陵與山地",
+      "西部平原、中部高山、東部高原",
+      "西部高原、中部丘陵、東部高山",
+      "西部盆地、中部高原、東部平原"
+    ],
+    "e": "西部以洛磯山脈為代表，中部為北美大平原，東部則有拉布拉多高原與阿帕拉契山脈。",
+    "p": 38
+  },
+  {
+    "l": 2,
+    "b": "A",
+    "q": "北美洲有多種氣候類型，課本指出的主要影響因素是什麼？",
+    "o": [
+      "緯度、地形與洋流",
+      "州名、國界與行政區數量",
+      "主要語言、宗教與節慶",
+      "都市人口與移民來源"
+    ],
+    "e": "北美洲緯度跨度大，又有山脈與不同洋流，氣候因此呈現區域差異。",
+    "p": 40
+  },
+  {
+    "l": 2,
+    "b": "B",
+    "q": "課本介紹的北美洲主要原住民族是哪一組？",
+    "o": [
+      "美洲原住民族（課本稱印第安人）與因紐特人",
+      "英國人與法國人",
+      "西班牙人與葡萄牙人",
+      "非裔移民與亞裔移民"
+    ],
+    "e": "原住民族先於近代移民在當地生活；課本列舉印第安人及因紐特人。",
+    "p": 43
+  },
+  {
+    "l": 2,
+    "b": "B",
+    "q": "「多元文化並存」較接近哪一種情況？",
+    "o": [
+      "不同文化相互交流，仍可保有各自特色",
+      "移入後每個族群的文化都完全相同",
+      "每個文化只在單一地形區內存在",
+      "只有人口最多的族群才具有文化"
+    ],
+    "e": "各地移民帶入文化，經長期互動與融合，形成多元並存的樣貌。",
+    "p": 43
+  },
+  {
+    "l": 2,
+    "b": "C",
+    "q": "北美洲的商業性農業，主要生產目標是什麼？",
+    "o": [
+      "供應市場，並可大量輸出農產品",
+      "只供農家自身消費",
+      "以保存傳統手工方式為唯一目標",
+      "主要透過採集野生植物維生"
+    ],
+    "e": "商業性農業以市場為導向，配合廣大農地、機械化與專業化，形成大量生產。",
+    "p": 44
+  },
+  {
+    "l": 2,
+    "b": "C",
+    "q": "北美洲工商業與大都市發展的重要基礎，哪一項最符合課本？",
+    "o": [
+      "原料豐富、私人企業發達，商品集散形成大市場",
+      "經濟活動只由小型自給農家組成",
+      "因缺少市場，企業只服務單一村落",
+      "各都市必須發展完全相同的產業"
+    ],
+    "e": "豐富原料支撐工業，私人企業與市場經濟促進交易，商品集散中心也發展為大都市。",
+    "p": 45
+  },
+  {
+    "l": 3,
+    "b": "A",
+    "n": "A1",
+    "q": "洛磯山脈與阿帕拉契山脈的比較，何者正確？",
+    "o": [
+      "洛磯山脈較高聳；阿帕拉契山脈地質古老、山勢較低",
+      "兩者都位在北美洲東岸",
+      "阿帕拉契山脈較年輕高聳，洛磯山脈是低平丘陵",
+      "兩者主要都由近代河流堆積形成"
+    ],
+    "e": "洛磯山脈高聳崎嶇；東部阿帕拉契山脈經長期侵蝕，山勢較低且煤礦豐富。",
+    "p": 39
+  },
+  {
+    "l": 3,
+    "b": "A",
+    "n": "A1",
+    "q": "北美大平原南部成為重要農業區，與哪一項條件最有關？",
+    "o": [
+      "地勢平坦，密西西比河沖積使土壤肥沃",
+      "普遍海拔高於洛磯山脈",
+      "全年冰雪覆蓋，形成大面積冰原",
+      "都位在太平洋沿岸狹窄山坡"
+    ],
+    "e": "中部平原平坦，南部河流沖積土壤肥沃，有利農業活動。",
+    "p": 38
+  },
+  {
+    "l": 3,
+    "b": "A",
+    "n": "A2",
+    "q": "溫哥華一帶全年有雨、年溫差小，與哪一組條件有關？",
+    "o": [
+      "西風帶與阿拉斯加暖流",
+      "東北季風與拉布拉多寒流",
+      "副熱帶高壓全年控制且遠離海洋",
+      "高山海拔與極地冰原"
+    ],
+    "e": "溫哥華位於中緯度太平洋沿岸，受西風與暖流影響，形成溫帶海洋性氣候。",
+    "p": 41
+  },
+  {
+    "l": 3,
+    "b": "A",
+    "n": "A2",
+    "q": "舊金山一帶的溫帶地中海型氣候，主要降水特色為何？",
+    "o": [
+      "夏季較乾、冬季較多雨",
+      "夏季較多雨、冬季乾燥",
+      "全年每個月雨量幾乎相同",
+      "全年都以降雪為主"
+    ],
+    "e": "北緯約30～40度的太平洋沿岸，受副熱帶高壓與西風季節交替影響，夏乾冬雨。",
+    "p": 41
+  },
+  {
+    "l": 3,
+    "b": "A",
+    "n": "A2",
+    "q": "內陸的溫尼伯與沿海的溫哥華相比，通常具有哪一項特徵？",
+    "o": [
+      "年溫差較大，冬夏氣溫差異更明顯",
+      "年溫差較小，冬夏氣溫幾乎相同",
+      "因距海較遠，所以全年一定更溫暖",
+      "只要緯度相近，兩地降水必定相同"
+    ],
+    "e": "溫尼伯屬溫帶大陸性氣候，大陸內部冬夏氣溫變化較劇烈。",
+    "p": 41
+  },
+  {
+    "l": 3,
+    "b": "A",
+    "n": "A3",
+    "q": "冬季極地冷氣團容易南下北美大平原，與哪一項地形特徵有關？",
+    "o": [
+      "平原遼闊，缺乏東西向高山阻擋",
+      "東西向高山橫跨整個平原",
+      "平原全部被海洋分割成島嶼",
+      "主要山脈都位於赤道以南"
+    ],
+    "e": "平原南北相通，又缺少東西向山脈阻隔，冷氣團可大幅南下，形成暴風雪災害。",
+    "p": 42
+  },
+  {
+    "l": 3,
+    "b": "B",
+    "n": "B1",
+    "q": "近代北美洲的移民來源，哪一項最符合課本？",
+    "o": [
+      "歐洲移民，以及來自非洲、亞洲等地的人群",
+      "全都來自英國，沒有其他來源",
+      "只有亞洲移民，沒有歐洲移民",
+      "只有原住民族在洲內移動"
+    ],
+    "e": "十六世紀後，來自多個洲的人群陸續遷入；不同遷移歷史共同形塑今日社會。",
+    "p": 43
+  },
+  {
+    "l": 3,
+    "b": "B",
+    "n": "B2",
+    "q": "研究美國州名的語言來源，最適合用來了解哪一項內容？",
+    "o": [
+      "不同族群與殖民移民留下的文化痕跡",
+      "各州地下煤礦的儲量",
+      "每個都市的年降水量",
+      "北美大平原的海拔變化"
+    ],
+    "e": "州名有英語、法語、美洲原住民族語言等來源，反映歷史與文化的多樣性。",
+    "p": 43
+  },
+  {
+    "l": 3,
+    "b": "C",
+    "n": "C1",
+    "q": "大片地區集中種植玉米或小麥，形成「專業化農作帶」，主要有何好處？",
+    "o": [
+      "便於機械作業、擴大規模並提高效率",
+      "可保證每年都沒有病蟲害",
+      "代表各地完全不受氣候影響",
+      "必須讓每塊農地同時種所有作物"
+    ],
+    "e": "專業化有利規模經營與機械化，但仍需面對天氣、病蟲害及市場風險。",
+    "p": 44
+  },
+  {
+    "l": 3,
+    "b": "C",
+    "n": "C1",
+    "q": "農民運用衛星定位、地理資訊與環境資料決定灌溉、施肥，屬於什麼做法？",
+    "o": [
+      "科技化農業",
+      "逐水草而居的游牧",
+      "只靠自家消費的維生農業",
+      "以手工採集取代農耕"
+    ],
+    "e": "科技化農業整合位置、環境與市場資訊，協助更有效地安排生產。",
+    "p": 44
+  },
+  {
+    "l": 3,
+    "b": "C",
+    "n": "C2",
+    "q": "五大湖區的傳統工業特色，哪一組配對正確？",
+    "o": [
+      "鋼鐵與汽車工業，底特律是代表都市",
+      "葡萄種植與釀酒，底特律是農作帶",
+      "航太與石化工業，西雅圖是代表都市",
+      "電影與流行文化，休士頓是代表都市"
+    ],
+    "e": "五大湖區是傳統鋼鐵與汽車工業中心，底特律以汽車工業著稱。",
+    "p": 45
+  },
+  {
+    "l": 3,
+    "b": "C",
+    "n": "C2",
+    "q": "太平洋沿岸及舊金山灣區的重要產業，何者配對正確？",
+    "o": [
+      "西雅圖航空產業、矽谷高科技產業",
+      "西雅圖汽車產業、矽谷石化產業",
+      "西雅圖棉花種植、矽谷酪農業",
+      "西雅圖全球金融、矽谷傳統煤礦"
+    ],
+    "e": "西雅圖是航空產業中心，舊金山灣區的矽谷則是高科技產業聚落。",
+    "p": 45
+  },
+  {
+    "l": 3,
+    "b": "C",
+    "n": "C3",
+    "q": "若要研究美國中西部農牧產品的交易，應優先觀察哪個都市？",
+    "o": [
+      "芝加哥",
+      "洛杉磯",
+      "休士頓",
+      "邁阿密"
+    ],
+    "e": "課本指出芝加哥是美國中西部農、牧產品的交易中心。",
+    "p": 45
+  },
+  {
+    "l": 3,
+    "b": "C",
+    "n": "C4",
+    "q": "美國企業的商品與文化能影響世界，主要透過什麼管道？",
+    "o": [
+      "跨國投資、產品行銷與大眾消費",
+      "只在本地自產自用，減少對外往來",
+      "由每個國家採取完全相同的氣候",
+      "所有文化都只透過自然洋流傳播"
+    ],
+    "e": "大型企業將商品行銷全球並進行投資，也讓美式飲食、影視與流行文化向外傳播。",
+    "p": 46
+  },
+  {
+    "l": 4,
+    "b": "A",
+    "n": "A1",
+    "q": "美、加邊境的五大湖，課本主要以何種作用解釋其形成？",
+    "o": [
+      "冰河侵蝕",
+      "火山噴發",
+      "海浪堆積",
+      "風力搬運"
+    ],
+    "e": "北美大平原北部受到冰河侵蝕，留下多個冰蝕湖，五大湖為代表。",
+    "p": 38
+  },
+  {
+    "l": 4,
+    "b": "A",
+    "n": "A2",
+    "q": "北美東岸的寒帶氣候延伸得比西岸更往南，主要原因為何？",
+    "o": [
+      "東岸受寒流，西岸受暖流影響",
+      "東岸比西岸更靠近赤道",
+      "東岸全年受到地中海型氣候控制",
+      "西岸所有地區海拔都比東岸高"
+    ],
+    "e": "東岸拉布拉多寒流降低沿岸氣溫，西岸暖流相對增溫，使寒帶分布界線不同。",
+    "p": 40
+  },
+  {
+    "l": 4,
+    "b": "A",
+    "n": "A2",
+    "q": "拉斯維加斯位於美國西南部內陸，降水稀少，與什麼條件最有關？",
+    "o": [
+      "位於西風的背風側，水氣較難到達",
+      "全年受到墨西哥灣暖流直接增溼",
+      "位於高緯度極地冰原",
+      "處在西風迎風側且水氣充足"
+    ],
+    "e": "西部山地阻擋水氣，背風側形成乾燥的溫帶沙漠氣候。",
+    "p": 41
+  },
+  {
+    "l": 4,
+    "b": "A",
+    "n": "A3",
+    "q": "春夏之交，北美大平原中南部冷暖氣團交會，最容易形成哪種災害？",
+    "o": [
+      "龍捲風",
+      "颶風",
+      "暴風雪",
+      "冰河崩塌"
+    ],
+    "e": "春夏交替時，冷暖氣團交會使氣流不穩定，平原中南部常有龍捲風。",
+    "p": 42
+  },
+  {
+    "l": 4,
+    "b": "A",
+    "n": "A3",
+    "q": "夏秋之際的墨西哥灣沿岸，較需防範哪一種災害？",
+    "o": [
+      "颶風帶來的強風與水患",
+      "高山冰河推進",
+      "西風帶暴風雪",
+      "全年持續的霜害"
+    ],
+    "e": "墨西哥灣沿岸夏秋常受颶風侵襲，造成風災與水患。",
+    "p": 42
+  },
+  {
+    "l": 4,
+    "b": "A",
+    "n": "A3",
+    "q": "某地出現「高溫、少雨、草木乾枯」的情況，最需要提高哪種警覺？",
+    "o": [
+      "森林火災",
+      "冰河侵蝕",
+      "寒潮暴風雪",
+      "河川結冰"
+    ],
+    "e": "乾燥草木容易成為燃料，高溫、少雨時更需防範森林大火。",
+    "p": 42
+  },
+  {
+    "l": 4,
+    "b": "B",
+    "n": "B1",
+    "q": "談論因紐特人與歐洲移民時，哪一項敘述正確？",
+    "o": [
+      "因紐特人是原住民族，歐洲人屬近代移入的人群",
+      "因紐特人與歐洲人都在十六世紀後才到達北美",
+      "因紐特人就是英國殖民者的另一個名稱",
+      "北美的原住民族全部源自近代歐洲移民"
+    ],
+    "e": "課本將因紐特人列為原住民族，與後來的歐洲移民作區分。",
+    "p": 43
+  },
+  {
+    "l": 4,
+    "b": "B",
+    "n": "B2",
+    "q": "紐約州名稱與英國約克地名有關，路易斯安那州名紀念法國國王。這說明什麼？",
+    "o": [
+      "北美地名保留不同歐洲文化的影響",
+      "兩州目前都屬於歐洲國家領土",
+      "兩州居民都只使用法語",
+      "兩州的自然環境與歐洲完全相同"
+    ],
+    "e": "地名可以保留歷史文化來源，但不能直接推論現今主權、居民語言或自然環境。",
+    "p": 43
+  },
+  {
+    "l": 4,
+    "b": "C",
+    "n": "C1",
+    "q": "北美洲廣大農場採機械化作業，最直接回應了哪一項條件？",
+    "o": [
+      "耕地大、農業勞力相對少",
+      "耕地狹小且每戶勞力非常充足",
+      "只為了保留手工耕作傳統",
+      "主要為了避免農產品進入市場"
+    ],
+    "e": "以機械提高效率，能在農業人口不多的情況下經營廣大農地。",
+    "p": 44
+  },
+  {
+    "l": 4,
+    "b": "C",
+    "n": "C1",
+    "q": "玉米帶農家將大型穀倉設在鐵路、公路旁，主要目的為何？",
+    "o": [
+      "方便儲運並銜接市場",
+      "利用車流為穀物授粉",
+      "使每年降水量增加",
+      "把農地轉為航太工廠"
+    ],
+    "e": "農業以市場為導向，穀倉鄰近運輸路線可便利農產品運送。",
+    "p": 44
+  },
+  {
+    "l": 4,
+    "b": "C",
+    "n": "C2",
+    "q": "墨西哥灣沿岸與休士頓的工業特色，哪一項正確？",
+    "o": [
+      "沿岸石化工業發達，休士頓是航太工業中心",
+      "沿岸以汽車為主，休士頓以葡萄農業為主",
+      "沿岸主要為高山牧場，休士頓為冰河研究站",
+      "沿岸以電影為主，休士頓為全美最大玉米農場"
+    ],
+    "e": "墨西哥灣沿岸有石油、天然氣及石化工業，休士頓另有航太工業特色。",
+    "p": 45
+  },
+  {
+    "l": 4,
+    "b": "C",
+    "n": "C3",
+    "q": "到紐約華爾街研究經濟活動，最可能接觸哪一種都市功能？",
+    "o": [
+      "全球金融中心",
+      "中西部農牧產品集散中心",
+      "太平洋沿岸航空製造中心",
+      "五大湖區汽車製造中心"
+    ],
+    "e": "紐約具有全球金融中心地位；其他功能分別可對應芝加哥、西雅圖與底特律。",
+    "p": 45
+  },
+  {
+    "l": 4,
+    "b": "C",
+    "n": "C4",
+    "q": "依課本引述的2025年品牌調查，前十名有七家美國企業，較適合支持哪一項觀察？",
+    "o": [
+      "美國企業的品牌在全球市場具有重要影響力",
+      "全球所有商品都由美國獨占",
+      "其他國家沒有任何知名企業",
+      "美國各州的經濟規模完全相同"
+    ],
+    "e": "品牌調查可顯示部分企業的全球影響，不能擴張成所有產業或各地發展都相同的結論。",
+    "p": 46
+  },
+  {
+    "l": 4,
+    "b": "C",
+    "n": "C4",
+    "q": "臺灣能看到好萊塢電影、購買美式速食，最能說明什麼現象？",
+    "o": [
+      "產品行銷使流行文化跨國傳播",
+      "北美與臺灣具有完全相同的地形",
+      "臺灣已成為北美洲的一個地理分區",
+      "國際貿易只涉及原料，不涉及文化"
+    ],
+    "e": "美式文化可伴隨影視、速食、飲料、服飾等產品與服務向世界各地傳播。",
+    "p": 46
+  }
+];
+
+/* ---------- 地圖幾何 ---------- */
+const RAD=[0,36,72,110,148], EDGE=[0,53,91,129,166];
+const SECT={A:-150,B:-30,C:90};
+const d2r=d=>d*Math.PI/180;
+const wob=a=>1+0.04*Math.sin(3*a+0.6)+0.022*Math.sin(5*a+2.1);
+const pt=(R,a)=>[R*wob(a)*Math.cos(a),R*wob(a)*Math.sin(a)];
+function ringPath(R){let s='';for(let k=0;k<96;k++){const [x,y]=pt(R,k/96*2*Math.PI);s+=(k?'L':'M')+x.toFixed(1)+' '+y.toFixed(1);}return s+'Z';}
+(function layout(){
+  const groups={};
+  Q.forEach((q,i)=>{q.i=i;const key=q.l+q.b;(groups[key]=groups[key]||[]).push(q);});
+  Q.forEach(q=>{
+    const g=groups[q.l+q.b],k=g.indexOf(q);
+    q.ang=q.l===1?d2r(-45+k*90):d2r(SECT[q.b]+(k+0.5)/g.length*120);
+    [q.x,q.y]=pt(RAD[q.l],q.ang);
+  });
+  Q.forEach(q=>{
+    if(q.l<3){q.parent=null;return;}
+    let c=Q.filter(o=>o.l===q.l-1&&o.b===q.b);
+    if(q.l===4){const same=c.filter(o=>o.n===q.n);if(same.length)c=same;}
+    q.parent=c.reduce((m,o)=>Math.abs(o.ang-q.ang)<Math.abs(m.ang-q.ang)?o:m);
+  });
+})();
+
+function mapSVG(res,cur){
+  let s='<svg viewBox="-192 -192 384 384" role="img" aria-label="等高線心智圖：中心是核心觀念，愈外圈愈細節">';
+  for(let l=4;l>=1;l--)s+=`<path class="band" d="${ringPath(EDGE[l])}" fill="var(--b${l})"/>`;
+  for(let l=4;l>=1;l--)s+=`<path class="contour" d="${ringPath(EDGE[l])}"/>`;
+  Object.values(SECT).forEach(d=>{const a=d2r(d),[x1,y1]=pt(EDGE[1],a),[x2,y2]=pt(EDGE[4],a);s+=`<line class="spoke" x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}"/>`;});
+  Q.forEach(q=>{
+    if(q.l===1)return;
+    const px=q.parent?q.parent.x:0,py=q.parent?q.parent.y:0,on=res[q.i]&&res[q.i].ok;
+    s+=`<line class="link${on?' on':''}" x1="${px.toFixed(1)}" y1="${py.toFixed(1)}" x2="${q.x.toFixed(1)}" y2="${q.y.toFixed(1)}"/>`;
+  });
+  s+='<circle class="peak" r="15"/><text class="maptext" text-anchor="middle" y="4.5">北美</text>';
+  Q.forEach(q=>{
+    const r=res[q.i],x=q.x.toFixed(1),y=q.y.toFixed(1);
+    if(q.i===cur)s+=`<circle class="cur" cx="${x}" cy="${y}" r="11.5"/>`;
+    s+=`<circle class="dot${r?(r.ok?' ok':' no'):''}" cx="${x}" cy="${y}" r="6.8"/>`;
+    if(r&&!r.ok)s+=`<path class="cross" d="M${(q.x-2.6).toFixed(1)} ${(q.y-2.6).toFixed(1)}l5.2 5.2m0 -5.2l-5.2 5.2"/>`;
+  });
+  [['A',-90,0,-176],['B',30,160,98],['C',150,-160,98]].forEach(([b,,x,y])=>{s+=`<text class="maptext" text-anchor="middle" x="${x}" y="${y}">${BR[b].code}</text>`;});
+  return s+'</svg>';
+}
+
+/* ---------- 狀態 ---------- */
+const $=id=>document.getElementById(id);
+let res={},queue=[],pos=0,firstPct=null,shownPct=0;
+let studentId='',attemptId='',attemptStarted=0,firstAnswers=null,completionCount=0;
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const correctCount=()=>Object.values(res).filter(r=>r.ok).length;
+const pctOf=(a,b)=>b?Math.round(a/b*100):0;
+function show(id){['start','quiz','result'].forEach(s=>$(s).hidden=s!==id);window.scrollTo(0,0);}
+
+function animatePct(el,from,to){
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches||from===to){el.textContent=to;return;}
+  const t0=performance.now();
+  (function step(t){const k=Math.min(1,(t-t0)/500);el.textContent=Math.round(from+(to-from)*k);if(k<1)requestAnimationFrame(step);})(t0);
+}
+function updateStatus(cur){
+  const done=Object.keys(res).length,got=correctCount(),p=pctOf(got,Q.length);
+  animatePct($('pct'),shownPct,p);shownPct=p;
+  $('trDone').style.width=done/Q.length*100+'%';
+  $('trGot').style.width=got/Q.length*100+'%';
+  $('count').textContent=`已作答 ${done} 題，答對 ${got} 題，共 ${Q.length} 題`;
+  $('mapQuiz').innerHTML=mapSVG(res,cur);
+}
+
+function begin(list){
+  queue=list;pos=0;show('quiz');ask();
+}
+function ask(){
+  const q=queue[pos],L=LAYERS[q.l-1];
+  const path=$('path');path.textContent='';
+  const chip=document.createElement('span');chip.className='chip l'+q.l;chip.textContent=`第${q.l}層 ${L.name}`;path.append(chip);
+  const where=document.createElement('span');
+  where.textContent=q.b==='R'?'整課的根本觀念':BR[q.b].code+' '+BR[q.b].name+(q.n?'／'+NODES[q.n]:'');
+  path.append(where);
+  $('qtext').textContent=q.q;
+  const box=$('opts');box.textContent='';
+  shuffle(q.o.map((t,i)=>({t,ok:i===0}))).forEach((o,k)=>{
+    const b=document.createElement('button');b.className='opt';b.type='button';
+    const key=document.createElement('span');key.className='k';key.textContent='ABCD'[k];
+    const tx=document.createElement('span');tx.textContent=o.t;
+    b.append(key,tx);b.dataset.ok=o.ok?'1':'';
+    b.addEventListener('click',()=>answer(q,o,b));
+    box.append(b);
+  });
+  $('fb').hidden=true;
+  updateStatus(q.i);
+}
+function answer(q,o,btn){
+  res[q.i]={ok:o.ok,chosen:o.t};
+  document.querySelectorAll('#opts .opt').forEach(b=>{
+    b.disabled=true;
+    if(b.dataset.ok)b.classList.add('right');
+    else if(b===btn)b.classList.add('wrong');
+    else b.classList.add('dim');
+  });
+  const fb=$('fb');fb.textContent='';
+  const head=document.createElement('strong');head.className=o.ok?'v-ok':'v-no';head.textContent=o.ok?'答對了':'答錯了';
+  const ex=document.createElement('p');ex.textContent=q.e;
+  const pg=document.createElement('p');pg.className='pg';pg.textContent=`課本第 ${q.p} 頁`;
+  const act=document.createElement('div');act.className='actions';
+  const nx=document.createElement('button');nx.className='btn';nx.type='button';
+  const last=pos===queue.length-1;nx.textContent=last?'看分析結果':'下一題';
+  nx.addEventListener('click',()=>{if(last)finish();else{pos++;ask();$('qtext').focus({preventScroll:true});const top=$('qtext').closest('.card').getBoundingClientRect().top;if(top<0||top>innerHeight*0.6)window.scrollTo(0,0);}});
+  act.append(nx);fb.append(head,ex,pg,act);fb.hidden=false;
+  updateStatus(-1);
+  nx.focus({preventScroll:true});
+  nx.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+
+/* ---------- 分析 ---------- */
+function tally(filter){const qs=Q.filter(filter);const got=qs.filter(q=>res[q.i]&&res[q.i].ok).length;return{got,all:qs.length,pct:pctOf(got,qs.length)};}
+function barRow(name,sub,t,color){
+  const row=document.createElement('div');row.className='bar';
+  const nm=document.createElement('div');nm.className='nm';nm.textContent=name;
+  if(sub){const s=document.createElement('span');s.textContent=sub;nm.append(s);}
+  const tr=document.createElement('div');tr.className='tr';const i=document.createElement('i');i.style.width=t.pct+'%';i.style.background=color;tr.append(i);
+  const pc=document.createElement('div');pc.className='pc';pc.textContent=t.pct+'%';
+  const c=document.createElement('span');c.textContent=`${t.got}／${t.all} 題`;pc.append(c);
+  row.append(nm,tr,pc);return row;
+}
+function nodeLine(label,t){
+  const d=document.createElement('div');d.className='node';
+  const b=document.createElement('b');b.textContent=label;
+  const s=document.createElement('span');s.className='sc '+(t.got===t.all?'full':t.got===0?'none':'part');s.textContent=`${t.got}／${t.all}`;
+  d.append(b,s);return d;
+}
+function finish(){
+  const total=tally(()=>true);
+  if(firstPct===null)firstPct=total.pct;
+  show('result');
+  const now=new Date();
+  $('rWho').textContent=(studentId+'　')+`${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`+(firstPct!==total.pct?`　第一次作答 ${firstPct}%，補強後 ${total.pct}%`:'');
+  $('mapResult').innerHTML=mapSVG(res,-1);
+  animatePct($('rPct'),0,total.pct);
+  const p=total.pct;
+  $('rVerdict').textContent=p>=90?'融會貫通':p>=75?'相當熟悉':p>=60?'大致了解':p>=40?'還不夠熟':'需要重讀這一課';
+
+  const L=LAYERS.map(x=>tally(q=>q.l===x.n));
+  const inner=pctOf(L[0].got+L[1].got,L[0].all+L[1].all), outer=pctOf(L[2].got+L[3].got,L[2].all+L[3].all);
+  const brk=L.findIndex(t=>t.pct<60);
+  let diag;
+  if(L.every(t=>t.pct>=80))diag='從核心到細節都很穩，這一課的心智圖你已經畫得很完整。';
+  else if(inner<60&&outer>=inner+10)diag='你記得不少細節，但最根本的觀念反而不穩。先把「自然環境有何優勢、文化如何形成、經濟如何發展」串起來，細節才有依據。';
+  else if(inner<60)diag='最根本的觀念還沒站穩。建議先回到課本第38～45頁，把三個小節的重點重讀一次，再往外補。';
+  else if(inner>=75&&L[3].pct<60)diag='架構很清楚，大觀念都懂，差在細節。把課本裡的圖表數字、都市功能、氣候成因與實例再對照一次。';
+  else diag='大方向有了，但有幾個地方還會鬆動。對照下面的題目，一個一個補回來。';
+  if(brk>=0&&!L.every(t=>t.pct>=80))diag+=`你的理解大約從第${brk+1}層「${LAYERS[brk].name}」開始鬆動。`;
+  $('rDiag').textContent=diag;
+
+  const lb=$('rLayers');lb.textContent='';
+  LAYERS.forEach((x,k)=>lb.append(barRow(`第${x.n}層 ${x.name}`,x.desc,L[k],`var(--b${x.n})`)));
+
+  const bb=$('rBranches');bb.textContent='';
+  const B=Object.keys(BR).map(b=>({b,t:tally(q=>q.b===b)}));
+  const weakest=B.reduce((m,o)=>o.t.pct<m.t.pct?o:m);
+  B.forEach(o=>bb.append(barRow(BR[o.b].code+' '+BR[o.b].name,(o===weakest&&o.t.pct<100?'最需要加強，':'')+`課本第${BR[o.b].pages}頁`,o.t,'var(--river)')));
+
+  const tree=$('rTree');tree.textContent='';
+  const root=document.createElement('li');root.append(nodeLine('北美洲（核心觀念）',tally(q=>q.l===1)));
+  const ul=document.createElement('ul');
+  Object.keys(BR).forEach(b=>{
+    const li=document.createElement('li');li.append(nodeLine(BR[b].code+' '+BR[b].name+'（大觀念）',tally(q=>q.b===b&&q.l===2)));
+    const sub=document.createElement('ul');
+    Object.keys(NODES).filter(n=>n[0]===b).forEach(n=>{const s=document.createElement('li');s.append(nodeLine(NODES[n],tally(q=>q.n===n)));sub.append(s);});
+    li.append(sub);ul.append(li);
+  });
+  root.append(ul);tree.append(root);
+
+  const miss=Q.filter(q=>res[q.i]&&!res[q.i].ok),ml=$('rMiss');ml.textContent='';
+  miss.forEach(q=>{
+    const li=document.createElement('li');
+    const chip=document.createElement('span');chip.className='chip l'+q.l;chip.textContent=`第${q.l}層 ${LAYERS[q.l-1].name}`;
+    const h=document.createElement('h3');h.textContent=q.q;
+    const ya=document.createElement('p');ya.className='ya';ya.textContent='你的答案：'+res[q.i].chosen;
+    const ca=document.createElement('p');ca.className='ca';ca.textContent='正確答案：'+q.o[0];
+    const ex=document.createElement('p');ex.className='ex';ex.textContent=q.e+`（課本第 ${q.p} 頁）`;
+    li.append(chip,h,ya,ca,ex);ml.append(li);
+  });
+  $('rMissTitle').textContent=miss.length?`需要回頭看的 ${miss.length} 題`:'需要回頭看的題目';
+  $('rNoMiss').hidden=miss.length>0;
+  $('retryMiss').hidden=miss.length===0;
+  queueCompletedScore();
+}
+
+/* ---------- 啟動 ---------- */
+LAYERS.forEach(x=>{
+  const li=document.createElement('li');
+  const c=document.createElement('span');c.className='chip l'+x.n;c.textContent=`第${x.n}層 ${x.name}`;
+  const d=document.createElement('span');d.textContent=`${x.desc}（${Q.filter(q=>q.l===x.n).length} 題）`;
+  li.append(c,d);$('legend').append(li);
+});
+$('mapStart').innerHTML=mapSVG({},-1);
+
+/* ---------- 雲端成績 ---------- */
+const SCORE_URL='https://script.google.com/macros/s/AKfycbwz8FoMEA8qlA3nDrMCN3Xjar3dLY1Sap6VpcbFcztVCSkPkwFlfcHnkAvXzePvSyqeow/exec';
+const PENDING_KEY='ltjh-concept-pending-g9-ch3-v1';
+let pendingScores=[],sendingScores=false,storageWorks=true;
+try{const saved=JSON.parse(localStorage.getItem(PENDING_KEY)||'[]');if(Array.isArray(saved))pendingScores=saved.filter(x=>x&&x.kind==='concept'&&x.quizId==='north-america-g9-ch3-v1'&&typeof x.rid==='string');}catch(_){storageWorks=false;}
+function persistScores(){try{localStorage.setItem(PENDING_KEY,JSON.stringify(pendingScores));}catch(_){storageWorks=false;}}
+function uploadMessage(text,retry){$('uploadStatus').textContent=text;$('retryUpload').hidden=!retry;}
+async function sendScores(){
+  if(sendingScores||!pendingScores.length)return;
+  sendingScores=true;$('retryUpload').disabled=true;
+  try{
+    while(pendingScores.length){
+      const record=pendingScores[0],ac=new AbortController(),timer=setTimeout(()=>ac.abort(),25000);
+      uploadMessage('成績上傳中…（'+pendingScores.length+' 筆待送出）',false);
+      try{
+        const response=await fetch(SCORE_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(record),redirect:'follow',signal:ac.signal});
+        if(!response.ok)throw new Error('HTTP '+response.status);
+        const result=await response.json();
+        if(result.ok!==true||result.rid!==record.rid)throw new Error(result.error||'未收到成績確認');
+        pendingScores.shift();persistScores();
+      }finally{clearTimeout(timer);}
+    }
+    uploadMessage('成績已上傳 ✓ 首次作答與錯題補強會分開記錄。',false);
+  }catch(_){
+    uploadMessage('尚有 '+pendingScores.length+' 筆成績未送出，請確認網路後重新上傳。'+(storageWorks?'待送成績已暫存於這台裝置。':'請保留此頁，直到顯示上傳成功。'),true);
+  }finally{sendingScores=false;$('retryUpload').disabled=false;}
+}
+function queueCompletedScore(){
+  const answers=Q.map(q=>q.o.indexOf(res[q.i]?.chosen));
+  if(answers.some(x=>x<0)||!/^\d{5}$/.test(studentId))return;
+  const initial=firstAnswers===null;
+  if(initial)firstAnswers=answers.slice();
+  const record={kind:'concept',quizId:'north-america-g9-ch3-v1',sid:studentId,stage:initial?'initial':'practice',answers,firstAnswers:firstAnswers.slice(),seconds:Math.max(0,Math.round((Date.now()-attemptStarted)/1000)),rid:attemptId+'-'+(++completionCount)};
+  pendingScores.push(record);persistScores();sendScores();
+}
+function startAttempt(){
+  const sid=$('sid').value.trim();
+  if(!/^\d{5}$/.test(sid)){$('sidError').hidden=false;$('sid').focus();return;}
+  $('sidError').hidden=true;studentId=sid;
+  attemptId=typeof crypto.randomUUID==='function'?crypto.randomUUID():Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
+  attemptStarted=Date.now();firstAnswers=null;completionCount=0;res={};firstPct=null;shownPct=0;begin(Q.slice());
+}
+$('go').addEventListener('click',startAttempt);
+$('restart').addEventListener('click',startAttempt);
+$('sid').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,5);if(/^\d{5}$/.test(e.target.value))$('sidError').hidden=true;});
+$('retryUpload').addEventListener('click',sendScores);
+window.addEventListener('online',sendScores);
+if(pendingScores.length)sendScores();
+
+$('retryMiss').addEventListener('click',()=>{
+  const list=Q.filter(q=>res[q.i]&&!res[q.i].ok);
+  list.forEach(q=>delete res[q.i]);
+  shownPct=pctOf(correctCount(),Q.length);
+  begin(list);
+});
+</script>
+</body>
+</html>

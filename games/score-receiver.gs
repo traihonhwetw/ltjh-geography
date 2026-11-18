@@ -220,7 +220,7 @@ function activateJigsawMap(id) {
 // 觀念檢測：與拼圖分頁記錄，公開端點只接受提交，不提供成績查詢。
 function receiveConceptScore_(d) {
   const sid=String(d.sid||''),rid=String(d.rid||'');
-  const quizTitles={'landforms-g7-ch3-v1':'地形熟悉度檢測｜國一上第3章','china-industry-g8-ch3-v1':'中國產業熟悉度檢測｜國二上第3課'};
+  const quizTitles={'landforms-g7-ch3-v1':'地形熟悉度檢測｜國一上第3章','china-industry-g8-ch3-v1':'中國產業熟悉度檢測｜國二上第3課','north-america-g9-ch3-v1':'北美洲熟悉度檢測｜國三上第3課'};
   const quizTitle=quizTitles[d.quizId];
   if(!Object.prototype.hasOwnProperty.call(quizTitles,d.quizId)||!/^\d{5}$/.test(sid)||!/^[0-9a-z-]{8,80}$/i.test(rid)) throw new Error('測驗或班級座號不正確');
   if(!['initial','practice'].includes(d.stage)) throw new Error('作答階段不正確');
@@ -231,7 +231,7 @@ function receiveConceptScore_(d) {
   if(!Number.isFinite(seconds)||seconds<0||seconds>604800) throw new Error('作答時間不正確');
   const first=d.firstAnswers.filter(x=>x===0).length,current=d.answers.filter(x=>x===0).length;
   const layers=[0,0,0,0],branches=[0,0,0],wrong=[];
-  const layout=[[1,'R'],[1,'R'],[1,'R'],[1,'R'],[2,'A'],[2,'A'],[2,'B'],[2,'B'],[2,'C'],[2,'C'],[3,'A'],[3,'A'],[3,'A'],[3,'A'],[3,'B'],[3,'B'],[3,'B'],[3,'B'],[3,'B'],[3,'C'],[3,'C'],[3,'C'],[3,'C'],[3,'C'],[4,'A'],[4,'A'],[4,'A'],[4,'A'],[4,'B'],[4,'B'],[4,'B'],[4,'B'],[4,'B'],[4,'C'],[4,'C'],[4,'C'],[4,'C'],[4,'C']];
+  const layout=d.quizId==='north-america-g9-ch3-v1'?[[1,"R"],[1,"R"],[1,"R"],[1,"R"],[2,"A"],[2,"A"],[2,"B"],[2,"B"],[2,"C"],[2,"C"],[3,"A"],[3,"A"],[3,"A"],[3,"A"],[3,"A"],[3,"A"],[3,"B"],[3,"B"],[3,"C"],[3,"C"],[3,"C"],[3,"C"],[3,"C"],[3,"C"],[4,"A"],[4,"A"],[4,"A"],[4,"A"],[4,"A"],[4,"A"],[4,"B"],[4,"B"],[4,"C"],[4,"C"],[4,"C"],[4,"C"],[4,"C"],[4,"C"]]:[[1,'R'],[1,'R'],[1,'R'],[1,'R'],[2,'A'],[2,'A'],[2,'B'],[2,'B'],[2,'C'],[2,'C'],[3,'A'],[3,'A'],[3,'A'],[3,'A'],[3,'B'],[3,'B'],[3,'B'],[3,'B'],[3,'B'],[3,'C'],[3,'C'],[3,'C'],[3,'C'],[3,'C'],[4,'A'],[4,'A'],[4,'A'],[4,'A'],[4,'B'],[4,'B'],[4,'B'],[4,'B'],[4,'B'],[4,'C'],[4,'C'],[4,'C'],[4,'C'],[4,'C']];
   d.answers.forEach((x,i)=>{if(x===0){layers[layout[i][0]-1]++;const b='ABC'.indexOf(layout[i][1]);if(b>=0)branches[b]++;}else wrong.push(i+1);});
   const id=PropertiesService.getScriptProperties().getProperty(SPREADSHEET_KEY);
   const sh=SpreadsheetApp.openById(id).getSheetByName('觀念檢測成績');
