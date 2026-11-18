@@ -169,8 +169,6 @@ button{font:inherit;color:inherit;cursor:pointer}
         <input id="sid" type="text" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" autocomplete="off" placeholder="例如：10105" required aria-describedby="sidHelp sidError">
         <p id="sidHelp" class="input-note">班級 3 碼＋座號 2 碼，例如一年一班 5 號是 10105。</p>
         <p id="sidError" class="input-error" role="alert" hidden>請輸入剛好 5 個數字的班級座號。</p>
-        <label for="who">姓名（選填）</label>
-        <input id="who" type="text" autocomplete="off" maxlength="30" placeholder="例如：王小明">
       </div>
       <div class="actions"><button class="btn" id="go">開始作答</button></div>
     </div>
@@ -340,7 +338,7 @@ function mapSVG(res,cur){
 
 /* ---------- 狀態 ---------- */
 const $=id=>document.getElementById(id);
-let res={},queue=[],pos=0,firstPct=null,shownPct=0,who='';
+let res={},queue=[],pos=0,firstPct=null,shownPct=0;
 let studentId='',attemptId='',attemptStarted=0,firstAnswers=null,completionCount=0;
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 const correctCount=()=>Object.values(res).filter(r=>r.ok).length;
@@ -428,7 +426,7 @@ function finish(){
   if(firstPct===null)firstPct=total.pct;
   show('result');
   const now=new Date();
-  $('rWho').textContent=(studentId+' '+(who||'')+'　')+`${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`+(firstPct!==total.pct?`　第一次作答 ${firstPct}%，補強後 ${total.pct}%`:'');
+  $('rWho').textContent=(studentId+'　')+`${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`+(firstPct!==total.pct?`　第一次作答 ${firstPct}%，補強後 ${total.pct}%`:'');
   $('mapResult').innerHTML=mapSVG(res,-1);
   animatePct($('rPct'),0,total.pct);
   const p=total.pct;
@@ -522,13 +520,13 @@ function queueCompletedScore(){
   if(answers.some(x=>x<0)||!/^\d{5}$/.test(studentId))return;
   const initial=firstAnswers===null;
   if(initial)firstAnswers=answers.slice();
-  const record={kind:'concept',quizId:'landforms-g7-ch3-v1',sid:studentId,name:who,stage:initial?'initial':'practice',answers,firstAnswers:firstAnswers.slice(),seconds:Math.max(0,Math.round((Date.now()-attemptStarted)/1000)),rid:attemptId+'-'+(++completionCount)};
+  const record={kind:'concept',quizId:'landforms-g7-ch3-v1',sid:studentId,stage:initial?'initial':'practice',answers,firstAnswers:firstAnswers.slice(),seconds:Math.max(0,Math.round((Date.now()-attemptStarted)/1000)),rid:attemptId+'-'+(++completionCount)};
   pendingScores.push(record);persistScores();sendScores();
 }
 function startAttempt(){
   const sid=$('sid').value.trim();
   if(!/^\d{5}$/.test(sid)){$('sidError').hidden=false;$('sid').focus();return;}
-  $('sidError').hidden=true;studentId=sid;who=$('who').value.trim();
+  $('sidError').hidden=true;studentId=sid;
   attemptId=typeof crypto.randomUUID==='function'?crypto.randomUUID():Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
   attemptStarted=Date.now();firstAnswers=null;completionCount=0;res={};firstPct=null;shownPct=0;begin(Q.slice());
 }
