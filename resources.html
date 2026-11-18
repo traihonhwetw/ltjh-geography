@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="立德國中地理課的探索資源：六款24片地理拼圖、國中地理漫畫與會考社會題庫。從臺灣到世界，換個方式讀懂地圖。">
+  <meta name="description" content="立德國中地理課的探索資源：依互動拼圖、觀念檢測、閱讀補充與會考練習分類，收錄六款地圖拼圖、地形熟悉度檢測、地理漫畫與會考社會題庫。">
   <meta name="theme-color" content="#111111">
   <title>其他資源｜探索・地理</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -109,6 +109,14 @@
     .puzzle-grid-six .puzzle-feature .card-bottom{margin-top:auto;padding-top:18px}
     @media(max-width:760px){.puzzle-grid.puzzle-grid-six{grid-template-columns:repeat(2,minmax(0,1fr))}}
     @media(max-width:480px){.puzzle-grid.puzzle-grid-six{grid-template-columns:minmax(0,1fr)}.puzzle-grid-six .puzzle-card:not(.puzzle-feature) .map-image{aspect-ratio:1.8;padding:12px}}
+    .category-nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:48px;scroll-margin-top:20px}
+    .category-nav a{display:flex;flex-direction:column;align-items:flex-start;gap:7px;border:1px solid var(--line);border-top:4px solid var(--yellow);padding:20px;text-decoration:none;background:var(--paper)}
+    .category-nav a:hover{border-color:var(--ink);background:#fff6cf}
+    .category-nav span{font:700 11px Arial,sans-serif;color:var(--muted);letter-spacing:.12em}
+    .category-nav strong{font-size:19px;font-weight:900}
+    .category-nav small{font-size:12px;color:var(--muted)}
+    @media(max-width:760px){.category-nav{grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:36px}}
+    @media(max-width:480px){.category-nav{gap:12px}.category-nav a{padding:16px}.category-nav strong{font-size:17px}.category-nav small{font-size:11px}}
   </style>
 </head>
 <body>
@@ -131,17 +139,23 @@
     <div class="wrap hero-inner">
       <div class="hero-copy">
         <p class="eyebrow"><span>其他資源</span> RESOURCE LIBRARY</p>
-        <h1 id="page-title">從臺灣出發，<br>把世界拼回來。</h1>
-        <p class="hero-description">沿著山脈、河流與國界，換個方式讀懂地圖。<br>從拼圖、漫畫到題庫，讓每一次探索都有新的發現。</p>
-        <a class="hero-action" href="#puzzle-lab">開始拼圖探索 <span aria-hidden="true">↘</span></a>
+        <h1 id="page-title">找到你的方式，<br>繼續探索地理。</h1>
+        <p class="hero-description">拼地圖、檢測觀念、閱讀漫畫、練習試題。<br>依照學習目標選擇資源，讓每一次探索都有方向。</p>
+        <a class="hero-action" href="#resource-categories">依分類找資源 <span aria-hidden="true">↘</span></a>
       </div>
-      <div class="hero-meta" aria-label="六款地理拼圖，每款固定二十四片"><span><b>06</b>款地理拼圖</span><span><b>24</b>片固定挑戰</span></div>
+      <div class="hero-meta" aria-label="四個資源分類，共九項資源"><span><b>04</b>個資源分類</span><span><b>09</b>項學習資源</span></div>
     </div>
   </section>
   <main id="main-content" class="wrap">
+    <nav id="resource-categories" class="category-nav" aria-label="資源分類">
+      <a href="#puzzle-lab"><span>01</span><strong>互動拼圖</strong><small>6 款地圖挑戰</small></a>
+      <a href="#concept-check"><span>02</span><strong>觀念檢測</strong><small>1 項自我檢測</small></a>
+      <a href="#reading"><span>03</span><strong>閱讀補充</strong><small>1 項漫畫資源</small></a>
+      <a href="#exam-practice"><span>04</span><strong>會考練習</strong><small>1 項題庫資源</small></a>
+    </nav>
     <section id="puzzle-lab" aria-labelledby="puzzle-title">
       <div class="section-head">
-        <div><p class="section-label">01 / INTERACTIVE MAPS</p><h2 id="puzzle-title">把地理，拼成你的記憶。</h2></div>
+        <div><p class="section-label">01 / INTERACTIVE MAPS</p><h2 id="puzzle-title">互動拼圖</h2></div>
         <p>選一張地圖，觀察輪廓與相鄰位置。<br>從臺灣、中國到世界，完成你的 24 片挑戰。</p>
       </div>
       <div class="puzzle-grid puzzle-grid-six">
@@ -172,13 +186,27 @@
       </div>
       <p class="play-note">進入拼圖後，輸入 5 碼班級座號即可開始計時；完成後，成績會自動上傳給老師。台灣鄰近地區地圖以老師目前設定的地圖為準。</p>
     </section>
-    <section class="more-resources" aria-labelledby="more-title">
-      <div class="section-head"><div><p class="section-label">02 / READ &amp; PRACTICE</p><h2 id="more-title">換個角度，繼續探索。</h2></div><p>用故事理解地理，用練習整理所學。</p></div>
+    <section id="concept-check" class="more-resources" aria-labelledby="concept-title">
+      <div class="section-head"><div><p class="section-label">02 / CONCEPT CHECK</p><h2 id="concept-title">觀念檢測</h2></div><p>從核心到細節，找出已經掌握與需要補強的觀念。</p></div>
+      <div class="resource-grid">
+        <a class="resource-card" href="games/landform-familiarity.html">
+          <span class="resource-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M4 25 11 10l5 8 4-5 8 12ZM11 10l3-6 4 9M6 29h20"/><circle cx="25" cy="6" r="3"/></svg></span>
+          <div class="resource-copy"><div class="resource-type">GRADE 7 / LANDFORMS</div><h3>地形熟悉度檢測</h3><p>國一上第 3 章・38 題・4 層觀念。<br>即時更新熟悉度與心智圖，完成後可查看解析、重練錯題。</p></div><span class="external" aria-hidden="true">→</span>
+        </a>
+      </div>
+    </section>
+    <section id="reading" class="more-resources" aria-labelledby="reading-title">
+      <div class="section-head"><div><p class="section-label">03 / READING</p><h2 id="reading-title">閱讀補充</h2></div><p>跟著故事與圖像，換個角度理解地理。</p></div>
       <div class="resource-grid">
         <a class="resource-card" href="https://spell0227.notion.site/Done-2e998e9ab3a280898d62fa462cdf2de7" target="_blank" rel="noopener">
           <span class="resource-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 8c-4-3-8-3-13-2v20c5-1 9-1 13 2 4-3 8-3 13-2V6c-5-1-9-1-13 2Z"/><path d="M16 8v20M7 10c2-.2 3.5 0 5 1M7 15c2-.2 3.5 0 5 1M20 11c2-1 3.5-1.2 5-1M20 16c2-1 3.5-1.2 5-1"/></svg></span>
           <div class="resource-copy"><div class="resource-type">READING / COMICS</div><h3>國中地理漫畫</h3><p>康軒版教材，跟著漫畫走進地理世界。<br>另開視窗閱讀。</p></div><span class="external" aria-hidden="true">↗</span>
         </a>
+      </div>
+    </section>
+    <section id="exam-practice" class="more-resources" aria-labelledby="exam-title">
+      <div class="section-head"><div><p class="section-label">04 / EXAM PRACTICE</p><h2 id="exam-title">會考練習</h2></div><p>透過歷屆試題，整理所學、檢視觀念。</p></div>
+      <div class="resource-grid">
         <a class="resource-card" href="https://cap-shehui.vercel.app/" target="_blank" rel="noopener">
           <span class="resource-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M19 3H6v26h20V10Z"/><path d="M19 3v7h7M10 15h11M10 20h6M10 25h9"/></svg></span>
           <div class="resource-copy"><div class="resource-type">PRACTICE / QUESTION BANK</div><h3>會考社會題庫</h3><p>歷屆試題分類練習，整理觀念、檢視所學。<br>另開視窗練習。</p></div><span class="external" aria-hidden="true">↗</span>
