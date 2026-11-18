@@ -13,6 +13,7 @@ function doPost(e) {
   try {
     lock.waitLock(20000);
     const d = JSON.parse(e.postData.contents);
+    if (d.kind === 'concept') return receiveConceptScore_(d);
 
     const sid = String(d.sid || '');
     if (!/^\d{5}$/.test(sid)) return reply({ ok: false, error: '班級座號必須是 5 個數字' });
@@ -214,4 +215,32 @@ function activateJigsawMap(id) {
     PropertiesService.getScriptProperties().setProperty(ACTIVE_MAP_KEY, meta.id);
     return { ok: true, id: meta.id, name: meta.name };
   } finally { lock.releaseLock(); }
+}
+
+// 觀念檢測：與拼圖分頁記錄，公開端點只接受提交，不提供成績查詢。
+function receiveConceptScore_(d) {
+  const sid=String(d.sid||''),rid=String(d.rid||'');
+  if(d.quizId!=='landforms-g7-ch3-v1'||!/^\d{5}$/.test(sid)||!/^[0-9a-z-]{8,80}$/i.test(rid)) throw new Error('測驗或班級座號不正確');
+  if(!['initial','practice'].includes(d.stage)) throw new Error('作答階段不正確');
+  const valid=a=>Array.isArray(a)&&a.length===38&&a.every(x=>Number.isInteger(x)&&x>=0&&x<=3);
+  if(!valid(d.answers)||!valid(d.firstAnswers)) throw new Error('必須完成全部38題');
+  if(d.stage==='initial'&&JSON.stringify(d.answers)!==JSON.stringify(d.firstAnswers)) throw new Error('首次作答資料不一致');
+  const seconds=Number(d.seconds);
+  if(!Number.isFinite(seconds)||seconds<0||seconds>604800) throw new Error('作答時間不正確');
+  const first=d.firstAnswers.filter(x=>x===0).length,current=d.answers.filter(x=>x===0).length;
+  const layers=[0,0,0,0],branches=[0,0,0],wrong=[];
+  const layout=[[1,'R'],[1,'R'],[1,'R'],[1,'R'],[2,'A'],[2,'A'],[2,'B'],[2,'B'],[2,'C'],[2,'C'],[3,'A'],[3,'A'],[3,'A'],[3,'A'],[3,'B'],[3,'B'],[3,'B'],[3,'B'],[3,'B'],[3,'C'],[3,'C'],[3,'C'],[3,'C'],[3,'C'],[4,'A'],[4,'A'],[4,'A'],[4,'A'],[4,'B'],[4,'B'],[4,'B'],[4,'B'],[4,'B'],[4,'C'],[4,'C'],[4,'C'],[4,'C'],[4,'C']];
+  d.answers.forEach((x,i)=>{if(x===0){layers[layout[i][0]-1]++;const b='ABC'.indexOf(layout[i][1]);if(b>=0)branches[b]++;}else wrong.push(i+1);});
+  const id=PropertiesService.getScriptProperties().getProperty(SPREADSHEET_KEY);
+  const sh=SpreadsheetApp.openById(id).getSheetByName('觀念檢測成績');
+  if(!sh) throw new Error('觀念檢測成績表尚未建立');
+  const last=sh.getLastRow();
+  if(last>1&&sh.getRange(2,22,last-1,1).createTextFinder(rid).matchEntireCell(true).useRegularExpression(false).findNext()) return reply({ok:true,rid:rid,duplicate:true});
+  const name=String(d.name||'').replace(/[\u0000-\u001f]/g,'').replace(/^[=+\-@\s]+/,'').slice(0,30);
+  const row=last+1;
+  if(row>sh.getMaxRows()) sh.insertRowsAfter(sh.getMaxRows(),100);
+  sh.getRange(row,3).setNumberFormat('@');
+  sh.getRange(row,1,1,22).setValues([[new Date(),'地形熟悉度檢測｜國一上第3章',sid,Number(sid.slice(0,3)),Number(sid.slice(3)),name,d.stage==='initial'?'首次作答':'錯題補強',38,first,Math.round(first/38*100),current,Math.round(current/38*100),...layers,...branches,Math.round(seconds),wrong.join('、'),rid]]);
+  SpreadsheetApp.flush();
+  return reply({ok:true,rid:rid,score:Math.round(current/38*100)});
 }
