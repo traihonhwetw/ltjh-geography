@@ -150,10 +150,13 @@ button{font:inherit;color:inherit;cursor:pointer}
 .miss .ex{color:var(--ink-2);margin-top:6px}
 .none-miss{margin-top:14px}
 @media (min-width:820px){.top{grid-template-columns:400px 1fr;gap:36px}}
+.site-tools{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:22px;font-size:.9rem}.site-tools a{color:var(--river)}.upload-status{padding:12px 16px;margin:0 0 22px;border:1px solid var(--line);border-radius:6px;background:var(--surface)}.upload-status p{margin:0}.upload-status button{margin-top:10px}.input-error{color:var(--no);font-size:.9rem;margin-top:6px}.field .input-note{font-size:.85rem;color:var(--ink-2);margin:0}
 </style>
 </head>
 <body>
 <div class="wrap">
+  <nav class="site-tools" aria-label="測驗導覽"><a href="../resources.html#concept-check">← 回其他資源</a><span>國一上・地形觀念檢測</span></nav>
+  <div class="upload-status"><p id="uploadStatus" role="status" aria-live="polite">完成測驗後，成績會自動上傳給老師；重練錯題會另外記錄補強成果。</p><button id="retryUpload" class="btn ghost" hidden>重新上傳成績</button></div>
 
   <section id="start" class="start">
     <div>
@@ -162,8 +165,12 @@ button{font:inherit;color:inherit;cursor:pointer}
       <p>這一課的內容像一張心智圖：中心是最根本的觀念，愈往外愈細。題目從中心開始，一圈一圈往外問。每答一題，熟悉度就會更新，地圖上的點也會亮起來。</p>
       <ul class="layers" id="legend"></ul>
       <div class="field">
-        <label for="who">班級座號和姓名（可以不填）</label>
-        <input id="who" type="text" autocomplete="off" maxlength="30" placeholder="例如：10105 王小明">
+        <label for="sid">班級座號（必填，5 個數字）</label>
+        <input id="sid" type="text" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" autocomplete="off" placeholder="例如：10105" required aria-describedby="sidHelp sidError">
+        <p id="sidHelp" class="input-note">班級 3 碼＋座號 2 碼，例如一年一班 5 號是 10105。</p>
+        <p id="sidError" class="input-error" role="alert" hidden>請輸入剛好 5 個數字的班級座號。</p>
+        <label for="who">姓名（選填）</label>
+        <input id="who" type="text" autocomplete="off" maxlength="30" placeholder="例如：王小明">
       </div>
       <div class="actions"><button class="btn" id="go">開始作答</button></div>
     </div>
@@ -334,6 +341,7 @@ function mapSVG(res,cur){
 /* ---------- 狀態 ---------- */
 const $=id=>document.getElementById(id);
 let res={},queue=[],pos=0,firstPct=null,shownPct=0,who='';
+let studentId='',attemptId='',attemptStarted=0,firstAnswers=null,completionCount=0;
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 const correctCount=()=>Object.values(res).filter(r=>r.ok).length;
 const pctOf=(a,b)=>b?Math.round(a/b*100):0;
@@ -420,7 +428,7 @@ function finish(){
   if(firstPct===null)firstPct=total.pct;
   show('result');
   const now=new Date();
-  $('rWho').textContent=(who?who+'　':'')+`${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`+(firstPct!==total.pct?`　第一次作答 ${firstPct}%，補強後 ${total.pct}%`:'');
+  $('rWho').textContent=(studentId+' '+(who||'')+'　')+`${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`+(firstPct!==total.pct?`　第一次作答 ${firstPct}%，補強後 ${total.pct}%`:'');
   $('mapResult').innerHTML=mapSVG(res,-1);
   animatePct($('rPct'),0,total.pct);
   const p=total.pct;
@@ -470,6 +478,7 @@ function finish(){
   $('rMissTitle').textContent=miss.length?`需要回頭看的 ${miss.length} 題`:'需要回頭看的題目';
   $('rNoMiss').hidden=miss.length>0;
   $('retryMiss').hidden=miss.length===0;
+  queueCompletedScore();
 }
 
 /* ---------- 啟動 ---------- */
@@ -480,8 +489,56 @@ LAYERS.forEach(x=>{
   li.append(c,d);$('legend').append(li);
 });
 $('mapStart').innerHTML=mapSVG({},-1);
-$('go').addEventListener('click',()=>{who=$('who').value.trim();res={};firstPct=null;shownPct=0;begin(Q.slice());});
-$('restart').addEventListener('click',()=>{res={};firstPct=null;shownPct=0;begin(Q.slice());});
+
+/* ---------- 雲端成績 ---------- */
+const SCORE_URL='https://script.google.com/macros/s/AKfycbwz8FoMEA8qlA3nDrMCN3Xjar3dLY1Sap6VpcbFcztVCSkPkwFlfcHnkAvXzePvSyqeow/exec';
+const PENDING_KEY='ltjh-concept-pending-v1';
+let pendingScores=[],sendingScores=false,storageWorks=true;
+try{const saved=JSON.parse(localStorage.getItem(PENDING_KEY)||'[]');if(Array.isArray(saved))pendingScores=saved.filter(x=>x&&x.kind==='concept'&&x.quizId==='landforms-g7-ch3-v1'&&typeof x.rid==='string');}catch(_){storageWorks=false;}
+function persistScores(){try{localStorage.setItem(PENDING_KEY,JSON.stringify(pendingScores));}catch(_){storageWorks=false;}}
+function uploadMessage(text,retry){$('uploadStatus').textContent=text;$('retryUpload').hidden=!retry;}
+async function sendScores(){
+  if(sendingScores||!pendingScores.length)return;
+  sendingScores=true;$('retryUpload').disabled=true;
+  try{
+    while(pendingScores.length){
+      const record=pendingScores[0],ac=new AbortController(),timer=setTimeout(()=>ac.abort(),25000);
+      uploadMessage('成績上傳中…（'+pendingScores.length+' 筆待送出）',false);
+      try{
+        const response=await fetch(SCORE_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(record),redirect:'follow',signal:ac.signal});
+        if(!response.ok)throw new Error('HTTP '+response.status);
+        const result=await response.json();
+        if(result.ok!==true||result.rid!==record.rid)throw new Error(result.error||'未收到成績確認');
+        pendingScores.shift();persistScores();
+      }finally{clearTimeout(timer);}
+    }
+    uploadMessage('成績已上傳 ✓ 首次作答與錯題補強會分開記錄。',false);
+  }catch(_){
+    uploadMessage('尚有 '+pendingScores.length+' 筆成績未送出，請確認網路後重新上傳。'+(storageWorks?'待送成績已暫存於這台裝置。':'請保留此頁，直到顯示上傳成功。'),true);
+  }finally{sendingScores=false;$('retryUpload').disabled=false;}
+}
+function queueCompletedScore(){
+  const answers=Q.map(q=>q.o.indexOf(res[q.i]?.chosen));
+  if(answers.some(x=>x<0)||!/^\d{5}$/.test(studentId))return;
+  const initial=firstAnswers===null;
+  if(initial)firstAnswers=answers.slice();
+  const record={kind:'concept',quizId:'landforms-g7-ch3-v1',sid:studentId,name:who,stage:initial?'initial':'practice',answers,firstAnswers:firstAnswers.slice(),seconds:Math.max(0,Math.round((Date.now()-attemptStarted)/1000)),rid:attemptId+'-'+(++completionCount)};
+  pendingScores.push(record);persistScores();sendScores();
+}
+function startAttempt(){
+  const sid=$('sid').value.trim();
+  if(!/^\d{5}$/.test(sid)){$('sidError').hidden=false;$('sid').focus();return;}
+  $('sidError').hidden=true;studentId=sid;who=$('who').value.trim();
+  attemptId=typeof crypto.randomUUID==='function'?crypto.randomUUID():Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
+  attemptStarted=Date.now();firstAnswers=null;completionCount=0;res={};firstPct=null;shownPct=0;begin(Q.slice());
+}
+$('go').addEventListener('click',startAttempt);
+$('restart').addEventListener('click',startAttempt);
+$('sid').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,5);if(/^\d{5}$/.test(e.target.value))$('sidError').hidden=true;});
+$('retryUpload').addEventListener('click',sendScores);
+window.addEventListener('online',sendScores);
+if(pendingScores.length)sendScores();
+
 $('retryMiss').addEventListener('click',()=>{
   const list=Q.filter(q=>res[q.i]&&!res[q.i].ok);
   list.forEach(q=>delete res[q.i]);
