@@ -220,7 +220,9 @@ function activateJigsawMap(id) {
 // 觀念檢測：與拼圖分頁記錄，公開端點只接受提交，不提供成績查詢。
 function receiveConceptScore_(d) {
   const sid=String(d.sid||''),rid=String(d.rid||'');
-  if(d.quizId!=='landforms-g7-ch3-v1'||!/^\d{5}$/.test(sid)||!/^[0-9a-z-]{8,80}$/i.test(rid)) throw new Error('測驗或班級座號不正確');
+  const quizTitles={'landforms-g7-ch3-v1':'地形熟悉度檢測｜國一上第3章','china-industry-g8-ch3-v1':'中國產業熟悉度檢測｜國二上第3課'};
+  const quizTitle=quizTitles[d.quizId];
+  if(!Object.prototype.hasOwnProperty.call(quizTitles,d.quizId)||!/^\d{5}$/.test(sid)||!/^[0-9a-z-]{8,80}$/i.test(rid)) throw new Error('測驗或班級座號不正確');
   if(!['initial','practice'].includes(d.stage)) throw new Error('作答階段不正確');
   const valid=a=>Array.isArray(a)&&a.length===38&&a.every(x=>Number.isInteger(x)&&x>=0&&x<=3);
   if(!valid(d.answers)||!valid(d.firstAnswers)) throw new Error('必須完成全部38題');
@@ -240,7 +242,7 @@ function receiveConceptScore_(d) {
   const row=last+1;
   if(row>sh.getMaxRows()) sh.insertRowsAfter(sh.getMaxRows(),100);
   sh.getRange(row,3).setNumberFormat('@');
-  sh.getRange(row,1,1,22).setValues([[new Date(),'地形熟悉度檢測｜國一上第3章',sid,Number(sid.slice(0,3)),Number(sid.slice(3)),name,d.stage==='initial'?'首次作答':'錯題補強',38,first,Math.round(first/38*100),current,Math.round(current/38*100),...layers,...branches,Math.round(seconds),wrong.join('、'),rid]]);
+  sh.getRange(row,1,1,22).setValues([[new Date(),quizTitle,sid,Number(sid.slice(0,3)),Number(sid.slice(3)),name,d.stage==='initial'?'首次作答':'錯題補強',38,first,Math.round(first/38*100),current,Math.round(current/38*100),...layers,...branches,Math.round(seconds),wrong.join('、'),rid]]);
   SpreadsheetApp.flush();
   return reply({ok:true,rid:rid,score:Math.round(current/38*100)});
 }

@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>中國產業熟悉度檢測｜國二上第3課</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;900&display=swap">
+<style>
+:root{
+  --paper:#EDF2EF; --surface:#FFFFFF; --ink:#16282B; --ink-2:#4C6063; --line:#C9D4D0;
+  --river:#1B6A8A; --river-ink:#FFFFFF;
+  --ok:#1C7A57; --ok-bg:#E0F1E8; --no:#B93D26; --no-bg:#F8E4DE;
+  --b1:#CC8C5F; --b2:#E6B66C; --b3:#EDDC8E; --b4:#A8CB8E;
+  --band-op:.62;
+  --serif:"Noto Serif TC","Songti TC","PMingLiU",serif;
+  --sans:"Noto Sans TC","PingFang TC","Microsoft JhengHei","Heiti TC",sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#101919; --surface:#192525; --ink:#E7EEEA; --ink-2:#A3B4B1; --line:#33453F;
+    --river:#6FBEDC; --river-ink:#0C1A1F;
+    --ok:#5CC79A; --ok-bg:#173A2D; --no:#F08A72; --no-bg:#42211A;
+    --b1:#8A5435; --b2:#8F6C2F; --b3:#7C7335; --b4:#3F6B47;
+    --band-op:.75;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#101919; --surface:#192525; --ink:#E7EEEA; --ink-2:#A3B4B1; --line:#33453F;
+  --river:#6FBEDC; --river-ink:#0C1A1F;
+  --ok:#5CC79A; --ok-bg:#173A2D; --no:#F08A72; --no-bg:#42211A;
+  --b1:#8A5435; --b2:#8F6C2F; --b3:#7C7335; --b4:#3F6B47;
+  --band-op:.75;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+body{margin:0;min-height:100%;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.65;-webkit-text-size-adjust:100%}
+[hidden]{display:none!important}
+.wrap{max-width:1040px;margin:0 auto;padding:20px 16px 48px}
+h1,h2,h3{font-family:var(--serif);margin:0;line-height:1.3}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--river);outline-offset:3px}
+
+/* 地圖 */
+.map svg{display:block;width:100%;height:auto}
+.band{opacity:var(--band-op)}
+.contour{fill:none;stroke:var(--ink);stroke-opacity:.38;stroke-width:1}
+.spoke{stroke:var(--ink);stroke-opacity:.3;stroke-width:1;stroke-dasharray:3 4}
+.link{stroke:var(--ink);stroke-opacity:.22;stroke-width:1.2}
+.link.on{stroke-opacity:.7}
+.dot{fill:var(--surface);stroke:var(--ink);stroke-opacity:.55;stroke-width:1.4}
+.dot.ok{fill:var(--ok);stroke:var(--surface);stroke-opacity:1}
+.dot.no{fill:var(--surface);stroke:var(--no);stroke-opacity:1;stroke-width:2}
+.cross{stroke:var(--no);stroke-width:2;stroke-linecap:round}
+.cur{fill:none;stroke:var(--river);stroke-width:3}
+.peak{fill:var(--surface);stroke:var(--ink);stroke-width:1.2}
+.maptext{font-family:var(--serif);font-weight:600;fill:var(--ink);font-size:12px}
+@media (prefers-reduced-motion:no-preference){
+  .cur{animation:pulse 1.6s ease-in-out infinite;transform-origin:center;transform-box:fill-box}
+  @keyframes pulse{50%{transform:scale(1.35);opacity:.45}}
+}
+
+/* 開始畫面 */
+.start{display:grid;gap:28px;align-items:center}
+.start h1{font-weight:900;font-size:clamp(2.2rem,8vw,3.6rem);letter-spacing:.04em}
+.start .sub{color:var(--ink-2);margin:6px 0 0}
+.start p{max-width:34em;margin:14px 0 0}
+.layers{list-style:none;padding:0;margin:20px 0 0;display:grid;gap:8px;max-width:30em}
+.layers li{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:baseline}
+.chip{display:inline-block;font-family:var(--serif);font-weight:600;font-size:.88rem;padding:1px 10px;border-radius:3px;color:#16282B;white-space:nowrap}
+.chip.l1{background:#CC8C5F}.chip.l2{background:#E6B66C}.chip.l3{background:#EDDC8E}.chip.l4{background:#A8CB8E}
+.field{margin-top:24px;display:grid;gap:6px;max-width:22em}
+.field label{font-size:.92rem;color:var(--ink-2)}
+.field input{font:inherit;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:6px;padding:10px 12px;width:100%}
+.btn{display:inline-block;border:0;border-radius:6px;background:var(--river);color:var(--river-ink);font-weight:700;padding:13px 26px;font-size:1.05rem;min-height:48px}
+.btn.ghost{background:transparent;color:var(--river);box-shadow:inset 0 0 0 1.5px var(--river)}
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px}
+@media (min-width:820px){.start{grid-template-columns:1fr 400px}}
+
+/* 作答畫面 */
+.quiz{display:grid;gap:18px}
+.status{display:grid;grid-template-columns:138px 1fr;gap:16px;align-items:center}
+.meter-num{font-family:var(--serif);font-weight:900;font-size:3rem;line-height:1;font-variant-numeric:tabular-nums}
+.meter-num small{font-size:1.2rem;font-weight:600;margin-left:2px}
+.meter-label{font-size:.9rem;color:var(--ink-2)}
+.track{position:relative;height:10px;border-radius:5px;background:var(--line);overflow:hidden;margin-top:10px}
+.track i{position:absolute;inset:0 auto 0 0;border-radius:5px;transition:width .5s ease}
+.track .done{background:var(--ink-2);opacity:.45}
+.track .got{background:var(--ok)}
+.count{font-size:.9rem;color:var(--ink-2);margin-top:6px;font-variant-numeric:tabular-nums}
+.card{background:var(--surface);border-radius:10px;padding:20px 18px 22px;border:1px solid var(--line)}
+.path{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:.92rem;color:var(--ink-2)}
+.qtext{font-family:var(--serif);font-weight:600;font-size:1.3rem;margin:14px 0 18px;line-height:1.55}
+.opts{display:grid;gap:10px}
+.opt{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;text-align:left;width:100%;background:var(--paper);border:1.5px solid var(--line);border-radius:8px;padding:13px 14px;min-height:52px;line-height:1.5}
+.opt .k{font-family:var(--serif);font-weight:600;width:1.6em;height:1.6em;border-radius:50%;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line);font-size:.95rem}
+.opt[disabled]{cursor:default;color:var(--ink)}
+.opt.right{background:var(--ok-bg);border-color:var(--ok)}
+.opt.right .k{background:var(--ok);color:var(--surface);border-color:var(--ok)}
+.opt.wrong{background:var(--no-bg);border-color:var(--no)}
+.opt.wrong .k{background:var(--no);color:var(--surface);border-color:var(--no)}
+.opt.dim{opacity:.55}
+.fb{margin-top:16px;padding-top:16px;border-top:1px dashed var(--line)}
+.fb strong{font-family:var(--serif)}
+.fb .v-ok{color:var(--ok)}.fb .v-no{color:var(--no)}
+.fb p{margin:4px 0 0}
+.fb .pg{font-size:.9rem;color:var(--ink-2)}
+@media (min-width:820px){
+  .quiz{grid-template-columns:340px 1fr;align-items:start;gap:28px}
+  .status{grid-template-columns:1fr;position:sticky;top:20px}
+  .qtext{font-size:1.45rem}
+}
+
+/* 分析畫面 */
+.result h1{font-weight:900;font-size:clamp(1.7rem,6vw,2.4rem)}
+.who{color:var(--ink-2);font-size:.92rem;margin:4px 0 0}
+.top{display:grid;gap:20px;align-items:center;margin-top:18px}
+.big{font-family:var(--serif);font-weight:900;font-size:clamp(4rem,18vw,6rem);line-height:1;font-variant-numeric:tabular-nums}
+.big small{font-size:.35em;font-weight:600}
+.verdict{font-family:var(--serif);font-weight:600;font-size:1.35rem;margin-top:6px}
+.diag{margin:10px 0 0;max-width:32em}
+.sec{margin-top:34px}
+.sec h2{font-size:1.25rem;font-weight:600;padding-bottom:8px;border-bottom:2px solid var(--ink)}
+.bars{display:grid;gap:14px;margin-top:16px}
+.bar{display:grid;grid-template-columns:minmax(6.5em,auto) 1fr 4.2em;gap:12px;align-items:center}
+.bar .nm{font-weight:500}
+.bar .nm span{display:block;font-size:.82rem;color:var(--ink-2);font-weight:400;line-height:1.3}
+.bar .tr{height:14px;border-radius:3px;background:var(--line);overflow:hidden}
+.bar .tr i{display:block;height:100%}
+.bar .pc{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.bar .pc span{display:block;font-weight:400;font-size:.8rem;color:var(--ink-2)}
+.tree,.tree ul{list-style:none;margin:0;padding:0}
+.tree{margin-top:14px}
+.tree ul{margin-left:11px;padding-left:16px;border-left:1.5px solid var(--line)}
+.tree li{padding:5px 0}
+.node{display:flex;gap:10px;align-items:center;justify-content:space-between}
+.node b{font-weight:500}
+.node .sc{font-variant-numeric:tabular-nums;font-size:.9rem;padding:0 9px;border-radius:3px;white-space:nowrap}
+.sc.full{background:var(--ok-bg);color:var(--ok)}
+.sc.part{background:var(--line);color:var(--ink)}
+.sc.none{background:var(--no-bg);color:var(--no)}
+.miss{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:12px}
+.miss li{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--no);border-radius:6px;padding:14px 16px}
+.miss h3{font-size:1.05rem;font-weight:600;margin:8px 0 8px;line-height:1.5}
+.miss p{margin:2px 0;font-size:.95rem}
+.miss .ya{color:var(--no)}.miss .ca{color:var(--ok);font-weight:700}
+.miss .ex{color:var(--ink-2);margin-top:6px}
+.none-miss{margin-top:14px}
+@media (min-width:820px){.top{grid-template-columns:400px 1fr;gap:36px}}
+.site-tools{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:22px;font-size:.9rem}.site-tools a{color:var(--river)}.upload-status{padding:12px 16px;margin:0 0 22px;border:1px solid var(--line);border-radius:6px;background:var(--surface)}.upload-status p{margin:0}.upload-status button{margin-top:10px}.input-error{color:var(--no);font-size:.9rem;margin-top:6px}.field .input-note{font-size:.85rem;color:var(--ink-2);margin:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="site-tools" aria-label="測驗導覽"><a href="../resources.html#concept-check">← 回其他資源</a><span>國二上・中國產業觀念檢測</span></nav>
+  <div class="upload-status"><p id="uploadStatus" role="status" aria-live="polite">完成測驗後，成績會自動上傳給老師；重練錯題會另外記錄補強成果。</p><button id="retryUpload" class="btn ghost" hidden>重新上傳成績</button></div>
+
+  <section id="start" class="start">
+    <div>
+      <h1>中國產業<br>熟悉度檢測</h1>
+      <p class="sub">國二上地理　第3課　中國的產業發展與地區差異</p>
+      <p>這一課的內容像一張心智圖：中心是最根本的觀念，愈往外愈細。題目從中心開始，一圈一圈往外問。每答一題，熟悉度就會更新，地圖上的點也會亮起來。</p>
+      <p class="sub" style="font-size:.85rem">依 115 學年度課本第 32～39 頁設計；圖表數字以課本標示年份為準。</p>
+      <ul class="layers" id="legend"></ul>
+      <div class="field">
+        <label for="sid">班級座號（必填，5 個數字）</label>
+        <input id="sid" type="text" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" autocomplete="off" placeholder="例如：10105" required aria-describedby="sidHelp sidError">
+        <p id="sidHelp" class="input-note">班級 3 碼＋座號 2 碼，例如一年一班 5 號是 10105。</p>
+        <p id="sidError" class="input-error" role="alert" hidden>請輸入剛好 5 個數字的班級座號。</p>
+        <label for="who">姓名（選填）</label>
+        <input id="who" type="text" autocomplete="off" maxlength="30" placeholder="例如：王小明">
+      </div>
+      <div class="actions"><button class="btn" id="go">開始作答</button></div>
+    </div>
+    <div class="map" id="mapStart" aria-hidden="true"></div>
+  </section>
+
+  <section id="quiz" class="quiz" hidden>
+    <div class="status">
+      <div class="map" id="mapQuiz"></div>
+      <div>
+        <div class="meter-label">熟悉度</div>
+        <div class="meter-num" aria-live="polite"><span id="pct">0</span><small>%</small></div>
+        <div class="track" aria-hidden="true"><i class="done" id="trDone"></i><i class="got" id="trGot"></i></div>
+        <div class="count" id="count"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="path" id="path"></div>
+      <h2 class="qtext" id="qtext" tabindex="-1"></h2>
+      <div class="opts" id="opts"></div>
+      <div class="fb" id="fb" hidden></div>
+    </div>
+  </section>
+
+  <section id="result" class="result" hidden>
+    <h1>你的產業心智圖</h1>
+    <p class="who" id="rWho"></p>
+    <div class="top">
+      <div class="map" id="mapResult"></div>
+      <div>
+        <div class="meter-label">熟悉度</div>
+        <div class="big"><span id="rPct">0</span><small>%</small></div>
+        <div class="verdict" id="rVerdict"></div>
+        <p class="diag" id="rDiag"></p>
+        <div class="actions">
+          <button class="btn" id="retryMiss">重練答錯的題目</button>
+          <button class="btn ghost" id="restart">全部重新作答</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h2>從核心到細節，哪一層開始鬆動</h2>
+      <div class="bars" id="rLayers"></div>
+    </div>
+    <div class="sec">
+      <h2>三個小節的熟悉度</h2>
+      <div class="bars" id="rBranches"></div>
+    </div>
+    <div class="sec">
+      <h2>每個主題的答對情形</h2>
+      <ul class="tree" id="rTree"></ul>
+    </div>
+    <div class="sec">
+      <h2 id="rMissTitle">需要回頭看的題目</h2>
+      <ul class="miss" id="rMiss"></ul>
+      <p class="none-miss" id="rNoMiss" hidden>全部答對，沒有需要補的地方。</p>
+    </div>
+  </section>
+</div>
+
+<script>
+const LAYERS=[
+  {n:1,name:'核心',desc:'這一課到底在講什麼'},
+  {n:2,name:'主幹',desc:'三個小節各自的大觀念'},
+  {n:3,name:'分支',desc:'每個主題的重點'},
+  {n:4,name:'細節',desc:'數字、實例和應用'}
+];
+const BR={
+  A:{code:'3-1',name:'農牧業發展與轉型',pages:'32～33'},
+  B:{code:'3-2',name:'工業發展的條件',pages:'34～35'},
+  C:{code:'3-3',name:'經濟核心與地區差異',pages:'36～39'}
+};
+const NODES={
+  A1:'傳統農牧業與環境',A2:'現代農牧業與糧食供應',
+  B1:'礦產與工業區位',B2:'交通與工業發展',B3:'改革開放與經濟特區',B4:'產業結構與工業升級',
+  C1:'經濟區的發展條件',C2:'區域發展策略',C3:'三大經濟圈',C4:'主要都市與都市化'
+};
+/* o 的第一個選項是正確答案，作答時會打亂順序 */
+const Q=[
+  {
+    "l": 1,
+    "b": "R",
+    "q": "這一課要解釋的核心現象，最接近下列哪一項？",
+    "o": [
+      "中國不同地區的產業發展與經濟程度有差異",
+      "中國各地的自然環境已經完全相同",
+      "中國的產業只剩下工業",
+      "中國每個都市的功能都一樣"
+    ],
+    "e": "本課從農牧業、工業發展條件與經濟核心，說明中國產業的轉變及地區差異。",
+    "p": 32
+  },
+  {
+    "l": 1,
+    "b": "R",
+    "q": "比較中國各地的產業時，哪一種思考方式最完整？",
+    "o": [
+      "同時考慮自然環境、交通條件與發展政策",
+      "只看地區面積大小",
+      "只看都市名稱是否知名",
+      "認為所有地方都適合相同產業"
+    ],
+    "e": "農牧業受氣溫與降水等環境影響；工業與區域發展還需考慮原料、交通、勞力及政策。",
+    "p": 32
+  },
+  {
+    "l": 1,
+    "b": "R",
+    "q": "近代中國經濟成長的重要動力，是哪一項變化？",
+    "o": [
+      "工業發展及產業結構轉變",
+      "各地全面回到傳統游牧生活",
+      "所有工廠都改為糧食農場",
+      "農業就業人口比例持續占絕大多數"
+    ],
+    "e": "課本指出工業發展是近代經濟成長的主要動力，第二、三級產業的重要性提高。",
+    "p": 35
+  },
+  {
+    "l": 1,
+    "b": "R",
+    "q": "同樣是發展工業，為何有些地區成長較快？",
+    "o": [
+      "各地原料、交通、勞力與開放時機不同",
+      "中國各地都同時採取完全相同的政策",
+      "所有工業都只能設在首都",
+      "地區發展與交通條件無關"
+    ],
+    "e": "區位條件與政策不同，使現代工業與經濟發展呈現明顯的區域差異。",
+    "p": 36
+  },
+  {
+    "l": 2,
+    "b": "A",
+    "q": "中國傳統農牧業大致呈現哪一種空間分工？",
+    "o": [
+      "東部以農耕為主，西部較多畜牧活動",
+      "東部以游牧為主，西部只種水稻",
+      "南方只有畜牧，北方沒有農業",
+      "農耕與畜牧都只集中在東北"
+    ],
+    "e": "東部較有利於農耕；西部則依乾燥、高寒等環境，發展不同畜牧方式。",
+    "p": 32
+  },
+  {
+    "l": 2,
+    "b": "A",
+    "q": "現代中國推動農牧業轉型、擴大生產的主要目的是什麼？",
+    "o": [
+      "回應人口與糧食需求，維持供應穩定",
+      "讓所有地區都停止糧食進口",
+      "使農產品只能在原產地消費",
+      "完全取消農業機械與交通建設"
+    ],
+    "e": "人口增加帶動糧食需求，透過提高效率、設立農業專區及改善交通，穩定糧食供應。",
+    "p": 33
+  },
+  {
+    "l": 2,
+    "b": "B",
+    "q": "課本強調，推動中國工業發展的兩項重要條件是什麼？",
+    "o": [
+      "礦產資源與交通建設",
+      "宗教分布與傳統節慶",
+      "海拔高度與行政區名稱",
+      "古蹟數量與地方菜色"
+    ],
+    "e": "礦產供應工業原料與能源；交通則運送原料、產品，連結工廠與市場。",
+    "p": 34
+  },
+  {
+    "l": 2,
+    "b": "B",
+    "q": "改革開放後，中國工業發展的方向如何改變？",
+    "o": [
+      "開放地區逐漸擴大，並由勞力密集走向技術密集",
+      "由高科技全面退回手工生產",
+      "只開放西部，沿海完全停止發展",
+      "永久停止引進外國技術與資本"
+    ],
+    "e": "改革開放由東南沿海向沿海、長江沿岸及內陸擴展，也逐步推動工業升級。",
+    "p": 35
+  },
+  {
+    "l": 2,
+    "b": "C",
+    "q": "中國劃分四大經濟區，主要是基於什麼考量？",
+    "o": [
+      "因應發展條件差異，推動不同區域發展策略",
+      "讓四區的人口與面積完全相等",
+      "以四區取代所有省級行政區",
+      "只依各地飲食口味區分"
+    ],
+    "e": "四大經濟區的資源、交通與發展歷程不同，因此政策重點也不同。",
+    "p": 36
+  },
+  {
+    "l": 2,
+    "b": "C",
+    "q": "中國三大經濟圈的分布，顯示經濟核心主要位在哪裡？",
+    "o": [
+      "東部沿海，結合重要都市與對外交通",
+      "全部位在青藏高原",
+      "只分布在西北沙漠內部",
+      "平均分散在所有省區"
+    ],
+    "e": "環渤海、長三角與珠三角位於東部沿海，具有重要都市、交通及對外聯繫優勢。",
+    "p": 37
+  },
+  {
+    "l": 3,
+    "b": "A",
+    "n": "A1",
+    "q": "秦嶺、淮河南北的主要糧食作物為何不同？",
+    "o": [
+      "南北的氣溫與降水條件不同",
+      "南北使用不同的行政區名稱",
+      "南方完全無法進行灌溉",
+      "北方所有土地都是沙漠"
+    ],
+    "e": "南方溫暖溼潤，以水稻為主；北方相對較乾冷，較適合小麥等作物。",
+    "p": 32
+  },
+  {
+    "l": 3,
+    "b": "A",
+    "n": "A1",
+    "q": "青藏高原牧民隨季節驅趕牲口上、下山，最能說明什麼？",
+    "o": [
+      "畜牧方式會配合季節與草場條件調整",
+      "牲口只能在同一海拔活動",
+      "當地畜牧完全不受自然環境影響",
+      "所有牧民都已改種水稻"
+    ],
+    "e": "山牧季移是依季節草場變化，調整放牧高度與位置。",
+    "p": 32
+  },
+  {
+    "l": 3,
+    "b": "A",
+    "n": "A2",
+    "q": "農業逐漸使用機械、改善灌溉，通常能帶來什麼影響？",
+    "o": [
+      "提高生產效率與糧食產量",
+      "必然使糧食產量降到零",
+      "讓所有農業完全不受天候影響",
+      "使農產品不再需要運輸"
+    ],
+    "e": "機械化、水利工程及相關投入，可提高效率與產量，但不能消除所有自然風險。",
+    "p": 33
+  },
+  {
+    "l": 3,
+    "b": "A",
+    "n": "A2",
+    "q": "糧食集中在少數大型基地生產，需要留意哪一種風險？",
+    "o": [
+      "基地遭遇水旱災害時，可能影響全國供應",
+      "各地將完全不再有糧食需求",
+      "農產品必定無法進入市場",
+      "所有農作物會自動改為小麥"
+    ],
+    "e": "集中生產有規模效益，但重要糧區受災，也可能擴大糧食供應危機。",
+    "p": 33
+  },
+  {
+    "l": 3,
+    "b": "B",
+    "n": "B1",
+    "q": "中國早期重工業常接近煤、鐵等原料產地，主要原因是什麼？",
+    "o": [
+      "原料重量大，遠距離運輸較不方便",
+      "原料產地必定都是首都",
+      "工業產品完全不需要市場",
+      "煤和鐵只能以航空運輸"
+    ],
+    "e": "煤、鐵等原料笨重，接近產地有利於早期重工業取得原料。",
+    "p": 34
+  },
+  {
+    "l": 3,
+    "b": "B",
+    "n": "B1",
+    "q": "當工業越來越依賴進口原料時，哪一類區位更有吸引力？",
+    "o": [
+      "水運便利的沿海與長江沿岸",
+      "完全沒有運輸路線的內陸",
+      "離所有港口最遠的山區",
+      "只要緯度最高就最有利"
+    ],
+    "e": "進口原料增加後，港口與河運優勢有助於原料輸入及產品運送。",
+    "p": 34
+  },
+  {
+    "l": 3,
+    "b": "B",
+    "n": "B2",
+    "q": "中國東半部的鐵路、公路通常較密集，與哪一項最有關？",
+    "o": [
+      "工商業較發達，運輸需求較大",
+      "東半部完全沒有農業",
+      "西半部不需要任何物資",
+      "所有鐵路都只能沿海岸興建"
+    ],
+    "e": "東半部工商業發達，交通路線較密集；西半部工商業較慢發展，路線相對稀疏。",
+    "p": 34
+  },
+  {
+    "l": 3,
+    "b": "B",
+    "n": "B3",
+    "q": "改革開放初期，經濟特區以出口為導向，通常利用哪些優勢？",
+    "o": [
+      "較低勞動成本、優惠政策與便利交通",
+      "高額出口限制與封閉市場",
+      "完全不需要資金與技術",
+      "只依賴高寒牧場與冰河"
+    ],
+    "e": "經濟特區利用成本、政策與交通優勢，吸引投資並促進對外貿易。",
+    "p": 35
+  },
+  {
+    "l": 3,
+    "b": "B",
+    "n": "B4",
+    "q": "由勞力密集型工業轉向技術密集型工業，代表什麼？",
+    "o": [
+      "產業更重視研發、技術與專業人才",
+      "工業不再需要任何知識",
+      "所有工廠都只靠增加低薪人力",
+      "產品與生產方式永久不變"
+    ],
+    "e": "工業升級使發展重心逐漸由大量勞力，轉向高科技與技術投入。",
+    "p": 35
+  },
+  {
+    "l": 3,
+    "b": "C",
+    "n": "C1",
+    "q": "四大經濟區中，東部成為經濟最發達地區的重要條件是什麼？",
+    "o": [
+      "人口與勞力充足，水陸交通及貿易便利",
+      "所有礦產都只存在於東部",
+      "東部沒有任何對外港口",
+      "東部面積占全國絕大部分"
+    ],
+    "e": "東部沿海人口稠密、勞力充足，兼具交通與進出口貿易優勢。",
+    "p": 36
+  },
+  {
+    "l": 3,
+    "b": "C",
+    "n": "C2",
+    "q": "中部地區雖不如東部發達，為何仍有發展潛力？",
+    "o": [
+      "是重要糧食供應地，且工資較東部低",
+      "只要位於內陸就一定最富裕",
+      "所有都市都是經濟特區",
+      "完全沒有任何農業活動"
+    ],
+    "e": "中部具糧食供應功能與較低工資等條件，形成發展潛力。",
+    "p": 36
+  },
+  {
+    "l": 3,
+    "b": "C",
+    "n": "C2",
+    "q": "西部與東北地區的發展課題，何者配對正確？",
+    "o": [
+      "西部重視交通與資源開發，東北重視老工業轉型",
+      "西部沒有資源，東北從未發展工業",
+      "兩區唯一問題都是水稻種植過多",
+      "兩區都完全不需要改善交通或產業"
+    ],
+    "e": "西部資源豐富但對外交通不便；東北的老工業面臨礦產枯竭與設備老舊。",
+    "p": 36
+  },
+  {
+    "l": 3,
+    "b": "C",
+    "n": "C3",
+    "q": "長三角經濟圈吸引高科技產業的重要條件是什麼？",
+    "o": [
+      "資訊流通快、金融發達，工商業與都市化程度高",
+      "沒有大都市，完全不與外界往來",
+      "只能依靠傳統游牧維生",
+      "僅因鄰近香港與澳門"
+    ],
+    "e": "長三角工商業與金融發達，具資訊與都市服務優勢，是電子、通訊及電腦產業重鎮。",
+    "p": 37
+  },
+  {
+    "l": 3,
+    "b": "C",
+    "n": "C4",
+    "q": "判斷都市的發展與功能時，下列哪一種配對正確？",
+    "o": [
+      "北京是首都，上海是重要金融中心",
+      "上海是首都，北京只是一個農村",
+      "廣州位於長江出海口，上海位於珠江口",
+      "深圳位於青藏高原，以山牧季移聞名"
+    ],
+    "e": "主要都市各有區位及發展特色；北京具有首都功能，上海則是主要金融中心。",
+    "p": 38
+  },
+  {
+    "l": 4,
+    "b": "A",
+    "n": "A1",
+    "q": "某地位於秦嶺、淮河以北，氣候相對較乾冷。依課本，主要糧食作物較可能是什麼？",
+    "o": [
+      "小麥",
+      "水稻",
+      "天然橡膠",
+      "咖啡"
+    ],
+    "e": "小麥較耐旱、耐寒，是課本介紹的北方主要糧食作物。",
+    "p": 32
+  },
+  {
+    "l": 4,
+    "b": "A",
+    "n": "A2",
+    "q": "內蒙古大型畜牧場使用機械轉盤擠奶，最能反映哪一種轉型？",
+    "o": [
+      "由傳統畜牧走向商業化、規模化生產",
+      "所有牧場都變成逐水草移動的小部落",
+      "鮮乳只能由牧民自己消費",
+      "畜牧生產完全停止使用設備"
+    ],
+    "e": "機械設備與大型企業畜牧場，可快速、大量供應市場所需的產品。",
+    "p": 33
+  },
+  {
+    "l": 4,
+    "b": "A",
+    "n": "A2",
+    "q": "商品糧基地選擇適合當地環境的作物，再擴大生產，主要希望達成什麼？",
+    "o": [
+      "發揮環境與規模優勢，穩定糧食供應",
+      "讓每個基地都種植完全相同的熱帶作物",
+      "使全國糧食供應只依靠一座都市",
+      "禁止各產區互相運送糧食"
+    ],
+    "e": "商品糧基地配合作物環境需求、基礎建設與生產規模，增加穩定供糧的能力。",
+    "p": 33
+  },
+  {
+    "l": 4,
+    "b": "A",
+    "n": "A2",
+    "q": "一批農產品要更快從產地送到都市市場，哪一項改善最直接？",
+    "o": [
+      "改良運輸工具與完善道路",
+      "只更改農場的名稱",
+      "只增加農村與都市的行政界線",
+      "減少所有產區之間的聯繫"
+    ],
+    "e": "交通改善能加速農產品在產區與市場之間流動，提高供應效率。",
+    "p": 33
+  },
+  {
+    "l": 4,
+    "b": "B",
+    "n": "B1",
+    "q": "課本用來說明中國早期工業基礎的礦產組合是哪一項？",
+    "o": [
+      "煤、鐵、石油",
+      "水稻、小麥、玉米",
+      "羊毛、鮮乳、牛肉",
+      "木材、茶葉、稻米"
+    ],
+    "e": "煤、鐵、石油是近代工業所需的重要基礎礦產。",
+    "p": 34
+  },
+  {
+    "l": 4,
+    "b": "B",
+    "n": "B1",
+    "q": "一家需要大量進口原料的工廠，選在港口附近，最合理的解釋是什麼？",
+    "o": [
+      "方便原料輸入及產品運出",
+      "港口附近一定完全沒有地價成本",
+      "進口原料只能透過公路入境",
+      "設在港口就不需要任何交通設備"
+    ],
+    "e": "水運可承擔大量原料與產品運輸，因此沿海與長江沿岸具有區位優勢。",
+    "p": 34
+  },
+  {
+    "l": 4,
+    "b": "B",
+    "n": "B2",
+    "q": "觀察中國交通分布，若某區鐵路、公路相對稀疏，較符合課本對哪一區域的描述？",
+    "o": [
+      "工商業發展較慢的西半部",
+      "工商業發達的東半部",
+      "所有經濟特區的市中心",
+      "長三角所有都市之間"
+    ],
+    "e": "課本以東密西疏的交通分布，說明交通與經濟發展的關係。",
+    "p": 34
+  },
+  {
+    "l": 4,
+    "b": "B",
+    "n": "B3",
+    "q": "課本指出，2010 年增設的第六個經濟特區位在哪裡？",
+    "o": [
+      "新疆喀什",
+      "北京",
+      "上海",
+      "內蒙古呼和浩特"
+    ],
+    "e": "課本介紹：東南沿海原有五個經濟特區，2010 年在新疆喀什增設第六個。",
+    "p": 35
+  },
+  {
+    "l": 4,
+    "b": "B",
+    "n": "B4",
+    "q": "依課本圖 1-3-8，2023 年第三級產業就業人口占 48.1%。哪一種解讀正確？",
+    "o": [
+      "接近一半，但還不到全體就業人口的一半",
+      "已超過全體就業人口的一半",
+      "代表都市土地占國土面積的 48.1%",
+      "代表第一級產業就業人口占 48.1%"
+    ],
+    "e": "48.1% 小於 50%，而且圖中指的是第三級產業「就業人口比例」，不是都市化程度或土地比例。",
+    "p": 35
+  },
+  {
+    "l": 4,
+    "b": "C",
+    "n": "C1",
+    "q": "依課本圖 1-3-11 的 2023 年資料，東部產值占全國 53.2%。最合理的判讀是什麼？",
+    "o": [
+      "東部創造的產值超過全國的一半",
+      "東部面積占全國 53.2%",
+      "每位東部居民的收入都完全相同",
+      "其餘三個經濟區都沒有任何生產"
+    ],
+    "e": "53.2% 是全國產值的占比，顯示東部經濟集中程度高，不能直接當成面積或個人收入資料。",
+    "p": 36
+  },
+  {
+    "l": 4,
+    "b": "C",
+    "n": "C2",
+    "q": "「西氣東輸」與「西電東送」中的「氣」與「電」，分別指什麼？",
+    "o": [
+      "天然氣與電力",
+      "水蒸氣與電腦",
+      "氧氣與電子產品",
+      "空氣與電話"
+    ],
+    "e": "西部大開發重點工程將西部的天然氣與電力向東輸送，連結資源產地與需求地。",
+    "p": 36
+  },
+  {
+    "l": 4,
+    "b": "C",
+    "n": "C3",
+    "q": "北京近郊的中關村聚集高科技研發部門，常被稱為什麼？",
+    "o": [
+      "中國矽谷",
+      "高原之舟",
+      "沙漠之舟",
+      "商品糧基地"
+    ],
+    "e": "中關村位於環渤海經濟圈的北京近郊，因研發與高科技產業集中而有中國矽谷之稱。",
+    "p": 37
+  },
+  {
+    "l": 4,
+    "b": "C",
+    "n": "C3",
+    "q": "珠三角最早改革開放，又有鄰近哪些地區的資金投入優勢？",
+    "o": [
+      "香港與澳門",
+      "青海與西藏",
+      "黑龍江與吉林",
+      "新疆與內蒙古"
+    ],
+    "e": "珠三角除技術累積外，也受香港、澳門資金投入的影響，形成新創產業優勢。",
+    "p": 37
+  },
+  {
+    "l": 4,
+    "b": "C",
+    "n": "C4",
+    "q": "某國都市化程度超過 50%，代表什麼？",
+    "o": [
+      "居住在都市的人口超過全國人口的一半",
+      "都市用地超過國土面積的一半",
+      "全部聚落中有一半以上被命名為都市",
+      "第三級產業就業人口必定超過一半"
+    ],
+    "e": "都市化程度衡量都市人口占總人口的比例，不能與土地面積或產業就業比例混為一談。",
+    "p": 39
+  }
+];
+
+/* ---------- 地圖幾何 ---------- */
+const RAD=[0,36,72,110,148], EDGE=[0,53,91,129,166];
+const SECT={A:-150,B:-30,C:90};
+const d2r=d=>d*Math.PI/180;
+const wob=a=>1+0.04*Math.sin(3*a+0.6)+0.022*Math.sin(5*a+2.1);
+const pt=(R,a)=>[R*wob(a)*Math.cos(a),R*wob(a)*Math.sin(a)];
+function ringPath(R){let s='';for(let k=0;k<96;k++){const [x,y]=pt(R,k/96*2*Math.PI);s+=(k?'L':'M')+x.toFixed(1)+' '+y.toFixed(1);}return s+'Z';}
+(function layout(){
+  const groups={};
+  Q.forEach((q,i)=>{q.i=i;const key=q.l+q.b;(groups[key]=groups[key]||[]).push(q);});
+  Q.forEach(q=>{
+    const g=groups[q.l+q.b],k=g.indexOf(q);
+    q.ang=q.l===1?d2r(-45+k*90):d2r(SECT[q.b]+(k+0.5)/g.length*120);
+    [q.x,q.y]=pt(RAD[q.l],q.ang);
+  });
+  Q.forEach(q=>{
+    if(q.l<3){q.parent=null;return;}
+    let c=Q.filter(o=>o.l===q.l-1&&o.b===q.b);
+    if(q.l===4){const same=c.filter(o=>o.n===q.n);if(same.length)c=same;}
+    q.parent=c.reduce((m,o)=>Math.abs(o.ang-q.ang)<Math.abs(m.ang-q.ang)?o:m);
+  });
+})();
+
+function mapSVG(res,cur){
+  let s='<svg viewBox="-192 -192 384 384" role="img" aria-label="等高線心智圖：中心是核心觀念，愈外圈愈細節">';
+  for(let l=4;l>=1;l--)s+=`<path class="band" d="${ringPath(EDGE[l])}" fill="var(--b${l})"/>`;
+  for(let l=4;l>=1;l--)s+=`<path class="contour" d="${ringPath(EDGE[l])}"/>`;
+  Object.values(SECT).forEach(d=>{const a=d2r(d),[x1,y1]=pt(EDGE[1],a),[x2,y2]=pt(EDGE[4],a);s+=`<line class="spoke" x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}"/>`;});
+  Q.forEach(q=>{
+    if(q.l===1)return;
+    const px=q.parent?q.parent.x:0,py=q.parent?q.parent.y:0,on=res[q.i]&&res[q.i].ok;
+    s+=`<line class="link${on?' on':''}" x1="${px.toFixed(1)}" y1="${py.toFixed(1)}" x2="${q.x.toFixed(1)}" y2="${q.y.toFixed(1)}"/>`;
+  });
+  s+='<circle class="peak" r="15"/><text class="maptext" text-anchor="middle" y="4.5">產業</text>';
+  Q.forEach(q=>{
+    const r=res[q.i],x=q.x.toFixed(1),y=q.y.toFixed(1);
+    if(q.i===cur)s+=`<circle class="cur" cx="${x}" cy="${y}" r="11.5"/>`;
+    s+=`<circle class="dot${r?(r.ok?' ok':' no'):''}" cx="${x}" cy="${y}" r="6.8"/>`;
+    if(r&&!r.ok)s+=`<path class="cross" d="M${(q.x-2.6).toFixed(1)} ${(q.y-2.6).toFixed(1)}l5.2 5.2m0 -5.2l-5.2 5.2"/>`;
+  });
+  [['A',-90,0,-176],['B',30,160,98],['C',150,-160,98]].forEach(([b,,x,y])=>{s+=`<text class="maptext" text-anchor="middle" x="${x}" y="${y}">${BR[b].code}</text>`;});
+  return s+'</svg>';
+}
+
+/* ---------- 狀態 ---------- */
+const $=id=>document.getElementById(id);
+let res={},queue=[],pos=0,firstPct=null,shownPct=0,who='';
+let studentId='',attemptId='',attemptStarted=0,firstAnswers=null,completionCount=0;
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const correctCount=()=>Object.values(res).filter(r=>r.ok).length;
+const pctOf=(a,b)=>b?Math.round(a/b*100):0;
+function show(id){['start','quiz','result'].forEach(s=>$(s).hidden=s!==id);window.scrollTo(0,0);}
+
+function animatePct(el,from,to){
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches||from===to){el.textContent=to;return;}
+  const t0=performance.now();
+  (function step(t){const k=Math.min(1,(t-t0)/500);el.textContent=Math.round(from+(to-from)*k);if(k<1)requestAnimationFrame(step);})(t0);
+}
+function updateStatus(cur){
+  const done=Object.keys(res).length,got=correctCount(),p=pctOf(got,Q.length);
+  animatePct($('pct'),shownPct,p);shownPct=p;
+  $('trDone').style.width=done/Q.length*100+'%';
+  $('trGot').style.width=got/Q.length*100+'%';
+  $('count').textContent=`已作答 ${done} 題，答對 ${got} 題，共 ${Q.length} 題`;
+  $('mapQuiz').innerHTML=mapSVG(res,cur);
+}
+
+function begin(list){
+  queue=list;pos=0;show('quiz');ask();
+}
+function ask(){
+  const q=queue[pos],L=LAYERS[q.l-1];
+  const path=$('path');path.textContent='';
+  const chip=document.createElement('span');chip.className='chip l'+q.l;chip.textContent=`第${q.l}層 ${L.name}`;path.append(chip);
+  const where=document.createElement('span');
+  where.textContent=q.b==='R'?'整課的根本觀念':BR[q.b].code+' '+BR[q.b].name+(q.n?'／'+NODES[q.n]:'');
+  path.append(where);
+  $('qtext').textContent=q.q;
+  const box=$('opts');box.textContent='';
+  shuffle(q.o.map((t,i)=>({t,ok:i===0}))).forEach((o,k)=>{
+    const b=document.createElement('button');b.className='opt';b.type='button';
+    const key=document.createElement('span');key.className='k';key.textContent='ABCD'[k];
+    const tx=document.createElement('span');tx.textContent=o.t;
+    b.append(key,tx);b.dataset.ok=o.ok?'1':'';
+    b.addEventListener('click',()=>answer(q,o,b));
+    box.append(b);
+  });
+  $('fb').hidden=true;
+  updateStatus(q.i);
+}
+function answer(q,o,btn){
+  res[q.i]={ok:o.ok,chosen:o.t};
+  document.querySelectorAll('#opts .opt').forEach(b=>{
+    b.disabled=true;
+    if(b.dataset.ok)b.classList.add('right');
+    else if(b===btn)b.classList.add('wrong');
+    else b.classList.add('dim');
+  });
+  const fb=$('fb');fb.textContent='';
+  const head=document.createElement('strong');head.className=o.ok?'v-ok':'v-no';head.textContent=o.ok?'答對了':'答錯了';
+  const ex=document.createElement('p');ex.textContent=q.e;
+  const pg=document.createElement('p');pg.className='pg';pg.textContent=`課本第 ${q.p} 頁`;
+  const act=document.createElement('div');act.className='actions';
+  const nx=document.createElement('button');nx.className='btn';nx.type='button';
+  const last=pos===queue.length-1;nx.textContent=last?'看分析結果':'下一題';
+  nx.addEventListener('click',()=>{if(last)finish();else{pos++;ask();$('qtext').focus({preventScroll:true});const top=$('qtext').closest('.card').getBoundingClientRect().top;if(top<0||top>innerHeight*0.6)window.scrollTo(0,0);}});
+  act.append(nx);fb.append(head,ex,pg,act);fb.hidden=false;
+  updateStatus(-1);
+  nx.focus({preventScroll:true});
+  nx.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+
+/* ---------- 分析 ---------- */
+function tally(filter){const qs=Q.filter(filter);const got=qs.filter(q=>res[q.i]&&res[q.i].ok).length;return{got,all:qs.length,pct:pctOf(got,qs.length)};}
+function barRow(name,sub,t,color){
+  const row=document.createElement('div');row.className='bar';
+  const nm=document.createElement('div');nm.className='nm';nm.textContent=name;
+  if(sub){const s=document.createElement('span');s.textContent=sub;nm.append(s);}
+  const tr=document.createElement('div');tr.className='tr';const i=document.createElement('i');i.style.width=t.pct+'%';i.style.background=color;tr.append(i);
+  const pc=document.createElement('div');pc.className='pc';pc.textContent=t.pct+'%';
+  const c=document.createElement('span');c.textContent=`${t.got}／${t.all} 題`;pc.append(c);
+  row.append(nm,tr,pc);return row;
+}
+function nodeLine(label,t){
+  const d=document.createElement('div');d.className='node';
+  const b=document.createElement('b');b.textContent=label;
+  const s=document.createElement('span');s.className='sc '+(t.got===t.all?'full':t.got===0?'none':'part');s.textContent=`${t.got}／${t.all}`;
+  d.append(b,s);return d;
+}
+function finish(){
+  const total=tally(()=>true);
+  if(firstPct===null)firstPct=total.pct;
+  show('result');
+  const now=new Date();
+  $('rWho').textContent=(studentId+' '+(who||'')+'　')+`${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`+(firstPct!==total.pct?`　第一次作答 ${firstPct}%，補強後 ${total.pct}%`:'');
+  $('mapResult').innerHTML=mapSVG(res,-1);
+  animatePct($('rPct'),0,total.pct);
+  const p=total.pct;
+  $('rVerdict').textContent=p>=90?'融會貫通':p>=75?'相當熟悉':p>=60?'大致了解':p>=40?'還不夠熟':'需要重讀這一課';
+
+  const L=LAYERS.map(x=>tally(q=>q.l===x.n));
+  const inner=pctOf(L[0].got+L[1].got,L[0].all+L[1].all), outer=pctOf(L[2].got+L[3].got,L[2].all+L[3].all);
+  const brk=L.findIndex(t=>t.pct<60);
+  let diag;
+  if(L.every(t=>t.pct>=80))diag='從核心到細節都很穩，這一課的心智圖你已經畫得很完整。';
+  else if(inner<60&&outer>=inner+10)diag='你記得不少細節，但最根本的觀念反而不穩。先把「產業受什麼影響、工業如何發展、為何有地區差異」串起來，細節才有依據。';
+  else if(inner<60)diag='最根本的觀念還沒站穩。建議先回到課本第32～36頁，把三個小節的重點重讀一次，再往外補。';
+  else if(inner>=75&&L[3].pct<60)diag='架構很清楚，大觀念都懂，差在細節。把課本裡的圖表數字、都市位置、政策與實例再對照一次。';
+  else diag='大方向有了，但有幾個地方還會鬆動。對照下面的題目，一個一個補回來。';
+  if(brk>=0&&!L.every(t=>t.pct>=80))diag+=`你的理解大約從第${brk+1}層「${LAYERS[brk].name}」開始鬆動。`;
+  $('rDiag').textContent=diag;
+
+  const lb=$('rLayers');lb.textContent='';
+  LAYERS.forEach((x,k)=>lb.append(barRow(`第${x.n}層 ${x.name}`,x.desc,L[k],`var(--b${x.n})`)));
+
+  const bb=$('rBranches');bb.textContent='';
+  const B=Object.keys(BR).map(b=>({b,t:tally(q=>q.b===b)}));
+  const weakest=B.reduce((m,o)=>o.t.pct<m.t.pct?o:m);
+  B.forEach(o=>bb.append(barRow(BR[o.b].code+' '+BR[o.b].name,(o===weakest&&o.t.pct<100?'最需要加強，':'')+`課本第${BR[o.b].pages}頁`,o.t,'var(--river)')));
+
+  const tree=$('rTree');tree.textContent='';
+  const root=document.createElement('li');root.append(nodeLine('中國產業（核心觀念）',tally(q=>q.l===1)));
+  const ul=document.createElement('ul');
+  Object.keys(BR).forEach(b=>{
+    const li=document.createElement('li');li.append(nodeLine(BR[b].code+' '+BR[b].name+'（大觀念）',tally(q=>q.b===b&&q.l===2)));
+    const sub=document.createElement('ul');
+    Object.keys(NODES).filter(n=>n[0]===b).forEach(n=>{const s=document.createElement('li');s.append(nodeLine(NODES[n],tally(q=>q.n===n)));sub.append(s);});
+    li.append(sub);ul.append(li);
+  });
+  root.append(ul);tree.append(root);
+
+  const miss=Q.filter(q=>res[q.i]&&!res[q.i].ok),ml=$('rMiss');ml.textContent='';
+  miss.forEach(q=>{
+    const li=document.createElement('li');
+    const chip=document.createElement('span');chip.className='chip l'+q.l;chip.textContent=`第${q.l}層 ${LAYERS[q.l-1].name}`;
+    const h=document.createElement('h3');h.textContent=q.q;
+    const ya=document.createElement('p');ya.className='ya';ya.textContent='你的答案：'+res[q.i].chosen;
+    const ca=document.createElement('p');ca.className='ca';ca.textContent='正確答案：'+q.o[0];
+    const ex=document.createElement('p');ex.className='ex';ex.textContent=q.e+`（課本第 ${q.p} 頁）`;
+    li.append(chip,h,ya,ca,ex);ml.append(li);
+  });
+  $('rMissTitle').textContent=miss.length?`需要回頭看的 ${miss.length} 題`:'需要回頭看的題目';
+  $('rNoMiss').hidden=miss.length>0;
+  $('retryMiss').hidden=miss.length===0;
+  queueCompletedScore();
+}
+
+/* ---------- 啟動 ---------- */
+LAYERS.forEach(x=>{
+  const li=document.createElement('li');
+  const c=document.createElement('span');c.className='chip l'+x.n;c.textContent=`第${x.n}層 ${x.name}`;
+  const d=document.createElement('span');d.textContent=`${x.desc}（${Q.filter(q=>q.l===x.n).length} 題）`;
+  li.append(c,d);$('legend').append(li);
+});
+$('mapStart').innerHTML=mapSVG({},-1);
+
+/* ---------- 雲端成績 ---------- */
+const SCORE_URL='https://script.google.com/macros/s/AKfycbwz8FoMEA8qlA3nDrMCN3Xjar3dLY1Sap6VpcbFcztVCSkPkwFlfcHnkAvXzePvSyqeow/exec';
+const PENDING_KEY='ltjh-concept-pending-g8-ch3-v1';
+let pendingScores=[],sendingScores=false,storageWorks=true;
+try{const saved=JSON.parse(localStorage.getItem(PENDING_KEY)||'[]');if(Array.isArray(saved))pendingScores=saved.filter(x=>x&&x.kind==='concept'&&x.quizId==='china-industry-g8-ch3-v1'&&typeof x.rid==='string');}catch(_){storageWorks=false;}
+function persistScores(){try{localStorage.setItem(PENDING_KEY,JSON.stringify(pendingScores));}catch(_){storageWorks=false;}}
+function uploadMessage(text,retry){$('uploadStatus').textContent=text;$('retryUpload').hidden=!retry;}
+async function sendScores(){
+  if(sendingScores||!pendingScores.length)return;
+  sendingScores=true;$('retryUpload').disabled=true;
+  try{
+    while(pendingScores.length){
+      const record=pendingScores[0],ac=new AbortController(),timer=setTimeout(()=>ac.abort(),25000);
+      uploadMessage('成績上傳中…（'+pendingScores.length+' 筆待送出）',false);
+      try{
+        const response=await fetch(SCORE_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(record),redirect:'follow',signal:ac.signal});
+        if(!response.ok)throw new Error('HTTP '+response.status);
+        const result=await response.json();
+        if(result.ok!==true||result.rid!==record.rid)throw new Error(result.error||'未收到成績確認');
+        pendingScores.shift();persistScores();
+      }finally{clearTimeout(timer);}
+    }
+    uploadMessage('成績已上傳 ✓ 首次作答與錯題補強會分開記錄。',false);
+  }catch(_){
+    uploadMessage('尚有 '+pendingScores.length+' 筆成績未送出，請確認網路後重新上傳。'+(storageWorks?'待送成績已暫存於這台裝置。':'請保留此頁，直到顯示上傳成功。'),true);
+  }finally{sendingScores=false;$('retryUpload').disabled=false;}
+}
+function queueCompletedScore(){
+  const answers=Q.map(q=>q.o.indexOf(res[q.i]?.chosen));
+  if(answers.some(x=>x<0)||!/^\d{5}$/.test(studentId))return;
+  const initial=firstAnswers===null;
+  if(initial)firstAnswers=answers.slice();
+  const record={kind:'concept',quizId:'china-industry-g8-ch3-v1',sid:studentId,name:who,stage:initial?'initial':'practice',answers,firstAnswers:firstAnswers.slice(),seconds:Math.max(0,Math.round((Date.now()-attemptStarted)/1000)),rid:attemptId+'-'+(++completionCount)};
+  pendingScores.push(record);persistScores();sendScores();
+}
+function startAttempt(){
+  const sid=$('sid').value.trim();
+  if(!/^\d{5}$/.test(sid)){$('sidError').hidden=false;$('sid').focus();return;}
+  $('sidError').hidden=true;studentId=sid;who=$('who').value.trim();
+  attemptId=typeof crypto.randomUUID==='function'?crypto.randomUUID():Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
+  attemptStarted=Date.now();firstAnswers=null;completionCount=0;res={};firstPct=null;shownPct=0;begin(Q.slice());
+}
+$('go').addEventListener('click',startAttempt);
+$('restart').addEventListener('click',startAttempt);
+$('sid').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,5);if(/^\d{5}$/.test(e.target.value))$('sidError').hidden=true;});
+$('retryUpload').addEventListener('click',sendScores);
+window.addEventListener('online',sendScores);
+if(pendingScores.length)sendScores();
+
+$('retryMiss').addEventListener('click',()=>{
+  const list=Q.filter(q=>res[q.i]&&!res[q.i].ok);
+  list.forEach(q=>delete res[q.i]);
+  shownPct=pctOf(correctCount(),Q.length);
+  begin(list);
+});
+</script>
+</body>
+</html>
